@@ -3,189 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JYA Nexus | Global Intelligence Map</title>
+    <title>JYA Nexus | Global Intelligence Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Leaflet Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; scroll-behavior: smooth; background: #020617; color: white; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; background: #020617; color: white; scroll-behavior: smooth; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        #map { height: 400px; width: 100%; border-radius: 2.5rem; margin-bottom: 2rem; border: 1px solid rgba(59, 130, 246, 0.15); z-index: 1; }
         .rtl { direction: rtl; }
-        #map { height: 450px; width: 100%; border-radius: 2rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.2); }
-        .search-glow:focus { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); border-color: #3b82f6; }
-        .leaflet-container { background: #020617 !important; }
-        /* Custom Map Marker Pulse */
-        .pulse-marker { width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 0 rgba(59, 130, 246, 0.4); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+        .pulse-marker { width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 0 rgba(59, 130, 246, 0.5); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
     </style>
 </head>
-<body>
+<body class="selection:bg-blue-500/30">
 
     <!-- Navbar -->
     <nav class="sticky top-0 z-[100] glass border-b border-slate-800/50 px-6 h-20 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <i data-lucide="map" class="text-white w-6 h-6"></i>
-            </div>
+            <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 font-black">J</div>
             <span class="text-2xl font-black tracking-tighter">JYA<span class="text-blue-500">.io</span></span>
         </div>
         <div class="flex items-center gap-4">
-            <select id="langSwitch" onchange="switchLang()" class="bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-bold outline-none cursor-pointer">
+            <select id="langSwitch" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-full px-4 py-2 text-xs font-bold outline-none cursor-pointer hover:border-blue-500 transition-all">
                 <option value="en">English</option>
                 <option value="ar">العربية</option>
                 <option value="ku">کوردی</option>
             </select>
-            <div class="hidden md:block h-8 w-[1px] bg-slate-800 mx-2"></div>
-            <button onclick="document.getElementById('search-input').focus()" class="hidden md:flex items-center gap-2 text-xs text-slate-400">
-                <i data-lucide="search" size="14"></i> <span id="nav-search">Global Search</span>
-            </button>
+            <button onclick="document.getElementById('searchInput').focus()" class="bg-white text-black px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">Console</button>
         </div>
     </nav>
 
-    <!-- Global Search -->
-    <header class="max-w-7xl mx-auto px-6 py-12 text-center relative">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-blue-600/5 blur-[120px] rounded-full -z-10"></div>
-        <h1 id="h1" class="text-4xl md:text-6xl font-black mb-6">Global Intelligence <span class="text-blue-500">Nodes</span></h1>
+    <!-- Hero Search -->
+    <header class="max-w-7xl mx-auto px-6 py-20 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/5 blur-[120px] rounded-full -z-10"></div>
+        <h1 id="h1" class="text-5xl md:text-8xl font-black mb-8 leading-tight">Connected Data,<br><span class="text-blue-500">Global Vision.</span></h1>
         
-        <div class="max-w-2xl mx-auto relative">
-            <input type="text" id="search-input" placeholder="Search city (e.g. Samawah, Dubai, New York...)" 
-                class="w-full bg-slate-900/50 border border-slate-800 py-5 px-8 rounded-[2rem] text-lg outline-none search-glow transition-all">
-            <button onclick="performSearch()" id="search-btn" class="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 px-8 py-2.5 rounded-2xl font-bold transition-all">
-                Sync
+        <div class="max-w-3xl mx-auto relative group">
+            <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+            <input type="text" id="searchInput" placeholder="Search city (e.g. Samawah, Dubai, London, New York...)" 
+                class="w-full bg-slate-900/50 border border-slate-800 py-6 pl-16 pr-6 rounded-3xl text-xl outline-none focus:border-blue-500 focus:bg-slate-900 transition-all">
+            <button onclick="syncData()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 px-10 py-3.5 rounded-2xl font-black transition-all">
+                Sync Node
             </button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 pb-20">
-        
-        <!-- Interactive Map Section -->
-        <section class="mb-12">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-3">
-                    <span class="w-3 h-3 bg-blue-500 rounded-full animate-ping"></span>
-                    <h2 id="active-city" class="text-2xl font-black tracking-tight uppercase">London, GB</h2>
+    <main class="max-w-7xl mx-auto px-6 pb-32">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:row justify-between items-end mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <h2 id="activeCity" class="text-4xl font-black tracking-tight uppercase">SAMAWAH, IQ</h2>
                 </div>
-                <div class="text-[10px] font-bold text-slate-500 tracking-[0.2em]" id="coords-display">LAT: 0 | LON: 0</div>
+                <p id="h2" class="text-slate-500 font-medium italic">Active environmental feed via JYA.io Global Network.</p>
             </div>
-            <div id="map"></div>
-        </section>
+            <div id="timeDisplay" class="glass px-6 py-2 rounded-full text-xs font-black text-blue-400 tracking-widest border border-blue-500/20">--:--</div>
+        </div>
 
-        <!-- Stats Grid -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Real Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="glass p-10 rounded-[3rem] border-l-8 border-orange-500">
                 <i data-lucide="thermometer" class="text-orange-500 mb-6"></i>
-                <div class="text-slate-500 text-[10px] font-black mb-1 uppercase tracking-widest" id="l-temp">Local Temp</div>
-                <div class="text-5xl font-black tracking-tighter"><span id="val-temp">--</span>°C</div>
+                <div id="l-temp" class="text-slate-500 text-xs font-bold mb-1 uppercase tracking-widest">Temperature</div>
+                <div class="text-6xl font-black tracking-tighter"><span id="v-temp">--</span>°</div>
             </div>
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                <i data-lucide="droplets" class="text-blue-400 mb-6"></i>
-                <div class="text-slate-500 text-[10px] font-black mb-1 uppercase tracking-widest" id="l-hum">Local Humidity</div>
-                <div class="text-5xl font-black tracking-tighter"><span id="val-hum">--</span>%</div>
+            <div class="glass p-10 rounded-[3rem] border-l-8 border-blue-500">
+                <i data-lucide="droplets" class="text-blue-500 mb-6"></i>
+                <div id="l-hum" class="text-slate-500 text-xs font-bold mb-1 uppercase tracking-widest">Humidity</div>
+                <div class="text-6xl font-black tracking-tighter"><span id="v-hum">--</span>%</div>
             </div>
-            <div class="glass p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-600/10 to-transparent">
-                <i data-lucide="brain-circuit" class="text-purple-400 mb-6"></i>
-                <div class="text-slate-500 text-[10px] font-black mb-1 uppercase tracking-widest" id="l-ai">AI Predictive Node</div>
-                <div id="ai-insight" class="text-sm font-bold leading-relaxed text-slate-300 italic">Connecting to regional data stream...</div>
+            <div class="glass p-10 rounded-[3rem] bg-gradient-to-br from-blue-600/10 to-transparent border-blue-500/10">
+                <i data-lucide="brain" class="text-purple-400 mb-6"></i>
+                <div id="l-ai" class="text-slate-500 text-xs font-bold mb-1 uppercase tracking-widest">AI Prediction</div>
+                <div id="v-ai" class="text-sm font-bold text-slate-300 leading-relaxed italic">Synchronizing local node data...</div>
             </div>
-        </section>
+        </div>
 
-        <!-- Analytics Chart -->
-        <section class="glass p-10 rounded-[3rem]">
-            <h3 id="chart-title" class="font-bold flex items-center gap-2 mb-8"><i data-lucide="bar-chart-3" class="text-blue-500"></i> Local Convergence History</h3>
-            <div class="h-[300px]">
-                <canvas id="mainChart"></canvas>
+        <!-- Performance Chart -->
+        <div class="glass p-10 rounded-[3.5rem]">
+            <h3 id="chartTitle" class="font-bold flex items-center gap-3 mb-10"><i data-lucide="activity" class="text-blue-500"></i> Thermal Convergence Stream</h3>
+            <div class="h-[400px]">
+                <canvas id="iotChart"></canvas>
             </div>
-        </section>
+        </div>
     </main>
 
-    <footer class="py-12 text-center opacity-30 text-[10px] font-bold tracking-widest border-t border-slate-900">
-        JYA.IO NEXUS WORLD PROTOCOL | ENCRYPTED LINK ACTIVE
+    <footer class="py-16 text-center opacity-30 text-[10px] font-black tracking-[0.3em] uppercase border-t border-slate-900">
+        JYA.io Global AIoT Protocol | Secure Stream Active
     </footer>
 
     <script>
         lucide.createIcons();
 
-        // 1. Initialize Map
-        const map = L.map('map', { zoomControl: false }).setView([51.505, -0.09], 4);
-        
-        // 2. High-Definition Dark Matter Tiles (Professional & HD)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO'
-        }).addTo(map);
-
-        let currentMarker = L.marker([51.505, -0.09]).addTo(map);
+        // Map Setup
+        const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        let marker;
 
         const translations = {
-            en: { h1: "Global Intelligence Nodes", l_temp: "Local Temperature", l_hum: "Local Humidity", l_ai: "AI Predictive Node", chart_title: "Local Convergence History", search: "Search city...", sync: "Sync" },
-            ar: { h1: "عقد الاستخبارات العالمية", l_temp: "درجة الحرارة المحلية", l_hum: "الرطوبة المحلية", l_ai: "عقدة التنبؤ الذكي", chart_title: "تاريخ تقارب البيانات", search: "ابحث عن مدينة...", sync: "مزامنة" },
-            ku: { h1: "گرێیەکانی ژیری جیهانی", l_temp: "پلەی گەرمی ناوخۆیی", l_hum: "شێداری ناوخۆیی", l_ai: "گرێی پێشبینیکردنی AI", chart_title: "مێژووی داتاکان", search: "گەڕان بۆ شار...", sync: "هاوچەرخکردن" }
+            en: { h1: "Connected Data,<br><span class='text-blue-500'>Global Vision.</span>", h2: "Active environmental feed via JYA.io Global Network.", l_temp: "Temperature", l_hum: "Humidity", l_ai: "AI Prediction", chartTitle: "Thermal Convergence Stream", search: "Search city (e.g. Dubai, Erbil...)" },
+            ar: { h1: "بيانات متصلة،<br><span class='text-blue-500'>رؤية عالمية.</span>", h2: "تغذية بيئية نشطة عبر شبكة جيا العالمية.", l_temp: "درجة الحرارة", l_hum: "الرطوبة", l_ai: "توقعات الذكاء", chartTitle: "بث التقارب الحراري", search: "ابحث عن مدينة (مثل دبي، أربيل...)" },
+            ku: { h1: "داتای پەیوەست،<br><span class='text-blue-500'>دیدگای جیهانی.</span>", h2: "زانیاری ژینگەیی چالاک لە ڕێگەی تۆڕی جیهانی JYA.", l_temp: "پلەی گەرمی", l_hum: "شێداری", l_ai: "پێشبینی AI", chartTitle: "پەخشی ئەنجامەکان", search: "بۆ شارێک بگەڕێ..." }
         };
 
-        function switchLang() {
+        function toggleLang() {
             const l = document.getElementById('langSwitch').value;
             document.body.classList.toggle('rtl', l === 'ar' || l === 'ku');
-            document.getElementById('h1').innerText = translations[l].h1;
+            document.getElementById('h1').innerHTML = translations[l].h1;
+            document.getElementById('h2').innerText = translations[l].h2;
             document.getElementById('l-temp').innerText = translations[l].l_temp;
             document.getElementById('l-hum').innerText = translations[l].l_hum;
             document.getElementById('l-ai').innerText = translations[l].l_ai;
-            document.getElementById('chart-title').innerText = translations[l].chart_title;
-            document.getElementById('search-input').placeholder = translations[l].search;
-            document.getElementById('search-btn').innerText = translations[l].sync;
+            document.getElementById('chartTitle').innerHTML = `<i data-lucide="activity" class='text-blue-500'></i> ` + translations[l].chartTitle;
+            document.getElementById('searchInput').placeholder = translations[l].search;
+            lucide.createIcons();
         }
 
-        async function fetchGlobalData(city) {
+        async function syncData() {
+            const city = document.getElementById('searchInput').value || "Samawah";
             try {
                 const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
                 const data = await res.json();
                 
-                if(data.main && data.coord) {
-                    const { lat, lon } = data.coord;
+                if (data.main) {
+                    document.getElementById('v-temp').innerText = Math.round(data.main.temp);
+                    document.getElementById('v-hum').innerText = data.main.humidity;
+                    document.getElementById('activeCity').innerText = `${data.name}, ${data.sys.country}`;
+                    document.getElementById('timeDisplay').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
-                    // Update Map
-                    map.flyTo([lat, lon], 10, { duration: 2 });
-                    if(currentMarker) map.removeLayer(currentMarker);
-                    
-                    const customIcon = L.divIcon({ className: 'pulse-marker', iconSize: [12, 12] });
-                    currentMarker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+                    document.getElementById('v-ai').innerText = data.main.temp > 30 
+                        ? "AI Node: Warning - Thermal density detected. Cooling suggested." 
+                        : "AI Node: Environmental status optimized. System healthy.";
 
-                    // Update UI
-                    document.getElementById('active-city').innerText = `${data.name}, ${data.sys.country}`;
-                    document.getElementById('coords-display').innerText = `LAT: ${lat.toFixed(2)} | LON: ${lon.toFixed(2)}`;
-                    document.getElementById('val-temp').innerText = Math.round(data.main.temp);
-                    document.getElementById('val-hum').innerText = data.main.humidity;
+                    const { lat, lon } = data.coord;
+                    map.flyTo([lat, lon], 10, { duration: 2 });
+                    if(marker) map.removeLayer(marker);
+                    marker = L.marker([lat, lon], { icon: L.divIcon({ className: 'pulse-marker', iconSize: [14, 14] }) }).addTo(map);
                     
-                    generateAI(data.main.temp, data.name);
                     updateChart(data.main.temp);
                 } else {
-                    alert("Node not found. Try a major city.");
+                    alert("Node not found. Ensure city name is correct.");
                 }
-            } catch (e) { console.error("Sync failed"); }
+            } catch (e) { console.error("Sync Error"); }
         }
 
-        function generateAI(t, name) {
-            const ai = document.getElementById('ai-insight');
-            if(t > 32) ai.innerText = `AI: High thermal density in ${name}. Recommend cooling protocols.`;
-            else ai.innerText = `AI: Environment in ${name} is stable. Energy efficiency at 99%.`;
-        }
-
-        function performSearch() {
-            const city = document.getElementById('search-input').value;
-            if(city) fetchGlobalData(city);
-        }
-
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') performSearch();
-        });
-
-        // Chart.js
-        const ctx = document.getElementById('mainChart').getContext('2d');
+        // Chart Setup
+        const ctx = document.getElementById('iotChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'line',
-            data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)', borderWidth: 2, pointRadius: 0 }]},
+            data: { labels: [], datasets: [{ label: 'Temp', data: [], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)', borderWidth: 4, pointRadius: 0 }]},
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { grid: { color: '#1e293b' } }, x: { grid: { display: false } } }}
         });
 
@@ -196,8 +173,9 @@
             chart.update();
         }
 
-        // Default Load
-        fetchGlobalData("Samawah");
+        document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') syncData(); });
+        syncData();
+        setInterval(syncData, 60000);
     </script>
 </body>
 </html>
