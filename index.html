@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JYA Nexus | Global AIoT Intelligence</title>
+    <title>JYA Nexus | The Future of AIoT Business</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,246 +13,191 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; background: #010409; color: white; scroll-behavior: smooth; }
         .glass { background: rgba(13, 17, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        #map { height: 500px; width: 100%; border-radius: 2.5rem; border: 1px solid rgba(59, 130, 246, 0.2); cursor: crosshair; }
         .rtl { direction: rtl; }
-        .stat-card { transition: all 0.3s ease; border-top: 4px solid transparent; }
-        .stat-card:hover { transform: translateY(-5px); border-top-color: #3b82f6; background: rgba(30, 41, 59, 0.5); }
-        .pulse-node { width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 20px #3b82f6; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+        .btn-primary { background: linear-gradient(90deg, #3b82f6, #2563eb); transition: all 0.3s; }
+        .btn-primary:hover { filter: brightness(1.2); transform: scale(1.05); }
+        #map { height: 450px; width: 100%; border-radius: 2.5rem; border: 1px solid rgba(59, 130, 246, 0.2); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <!-- Header -->
-    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12 glass p-6 rounded-[2rem]">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <i data-lucide="activity" class="text-white"></i>
-            </div>
-            <div>
-                <h1 class="text-2xl font-black tracking-tighter">JYA NEXUS</h1>
-                <p class="text-[10px] text-blue-400 font-bold tracking-[0.3em] uppercase">Global AIoT Hub</p>
-            </div>
-        </div>
-
-        <div class="flex flex-1 max-w-xl mx-4 relative group w-full">
-            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-            <input type="text" id="searchInput" placeholder="Search city or click anywhere on map..." 
-                class="w-full bg-slate-900/50 border border-slate-800 py-4 pl-12 pr-4 rounded-2xl outline-none focus:border-blue-500 transition-all">
-        </div>
-
+    <!-- Nav -->
+    <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between glass sticky top-4 z-[100] m-4 rounded-3xl">
         <div class="flex items-center gap-3">
-            <select id="langSwitch" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs font-bold outline-none">
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black">J</div>
+            <span class="text-2xl font-black tracking-tighter">JYA<span class="text-blue-500">.io</span></span>
+        </div>
+        <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-slate-400">
+            <a href="#dashboard" class="hover:text-blue-500 transition-colors">Monitoring</a>
+            <a href="#solutions" class="hover:text-blue-500 transition-colors">Solutions</a>
+            <a href="#pricing" class="hover:text-blue-500 transition-colors">Pricing</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <select id="langSwitch" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-full px-3 py-1 text-xs outline-none cursor-pointer">
+                <option value="en">EN</option>
+                <option value="ar">AR</option>
             </select>
-            <div id="localTime" class="text-xs font-mono bg-blue-500/10 text-blue-400 px-4 py-2 rounded-xl border border-blue-500/20">--:--:--</div>
+            <button class="btn-primary text-white px-6 py-2 rounded-full text-xs font-black uppercase">Login</button>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto">
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-6">
         
-        <!-- Map Section -->
-        <section class="mb-12 relative">
-            <div class="absolute top-6 left-6 z-[20] glass px-6 py-3 rounded-2xl border border-blue-500/30">
-                <div class="flex items-center gap-3">
-                    <span class="relative flex h-3 w-3">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                    </span>
-                    <h2 id="activeLocation" class="text-lg font-black uppercase tracking-tight">SAMAWAH, IQ</h2>
+        <!-- Dashboard Header -->
+        <section id="dashboard" class="py-12">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+                <div>
+                    <h2 id="h-node" class="text-4xl font-black mb-2 uppercase">Global Node Monitor</h2>
+                    <p class="text-blue-400 font-bold text-xs" id="activeCity">SYNCING WITH SAMAWAH, IQ...</p>
+                </div>
+                <div class="max-w-md w-full relative">
+                    <input type="text" id="searchInput" placeholder="Search city or click map..." 
+                        class="w-full bg-slate-900 border border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-blue-500 transition-all">
+                    <button onclick="syncData()" class="absolute right-2 top-2 bg-blue-600 px-6 py-2 rounded-xl text-xs font-bold">Sync</button>
                 </div>
             </div>
-            <div id="map"></div>
-            <p class="text-center mt-4 text-slate-500 text-xs font-bold uppercase tracking-widest">Tip: Click anywhere on the map to deploy a sensor node</p>
+            <div id="map" class="mb-12"></div>
         </section>
 
         <!-- Stats Grid -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <!-- Temperature -->
-            <div class="stat-card glass p-8 rounded-[2.5rem]">
-                <div class="flex justify-between items-start mb-6">
-                    <i data-lucide="thermometer" class="text-orange-400"></i>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase" id="l-temp">Thermal</span>
-                </div>
-                <div class="text-5xl font-black tracking-tighter"><span id="v-temp">--</span>°C</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20">
+            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
+                <i data-lucide="thermometer" class="text-orange-500 mb-4"></i>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Temperature</div>
+                <div class="text-4xl font-black"><span id="v-temp">--</span>°C</div>
             </div>
-
-            <!-- Humidity -->
-            <div class="stat-card glass p-8 rounded-[2.5rem]">
-                <div class="flex justify-between items-start mb-6">
-                    <i data-lucide="droplets" class="text-blue-400"></i>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase" id="l-hum">Humidity</span>
-                </div>
-                <div class="text-5xl font-black tracking-tighter"><span id="v-hum">--</span>%</div>
+            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
+                <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Humidity</div>
+                <div class="text-4xl font-black"><span id="v-hum">--</span>%</div>
             </div>
-
-            <!-- Wind -->
-            <div class="stat-card glass p-8 rounded-[2.5rem]">
-                <div class="flex justify-between items-start mb-6">
-                    <i data-lucide="wind" class="text-emerald-400"></i>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase" id="l-wind">Wind Speed</span>
-                </div>
-                <div class="text-5xl font-black tracking-tighter"><span id="v-wind">--</span><span class="text-sm ml-1 text-slate-500 italic">km/h</span></div>
-                <div id="v-wind-dir" class="text-[10px] mt-2 text-slate-400 font-bold uppercase">Direction: --</div>
+            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
+                <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Wind</div>
+                <div class="text-4xl font-black"><span id="v-wind">--</span><span class="text-xs ml-1">km/h</span></div>
             </div>
+            <div class="glass p-8 rounded-[2.5rem] bg-blue-600/10 border-blue-500/20">
+                <i data-lucide="brain" class="text-purple-400 mb-4"></i>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">AI Insight</div>
+                <div id="v-ai" class="text-xs font-bold text-blue-300 italic">Processing data...</div>
+            </div>
+        </div>
 
-            <!-- AI Insight (Predictive) -->
-            <div class="stat-card glass p-8 rounded-[2.5rem] bg-blue-600/5 border-blue-500/20">
-                <div class="flex justify-between items-start mb-6">
-                    <i data-lucide="brain-circuit" class="text-purple-400"></i>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase" id="l-ai">AI Analysis</span>
+        <!-- NEW: Industry Solutions Section -->
+        <section id="solutions" class="py-20 border-t border-slate-900">
+            <h2 id="h-solutions" class="text-3xl font-black mb-12 text-center uppercase tracking-widest">Industry Solutions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
+                    <i data-lucide="factory" class="text-blue-500 mb-6 w-10 h-10"></i>
+                    <h3 class="text-xl font-bold mb-4">Smart Industry</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Predictive maintenance and air quality monitoring for manufacturing plants.</p>
                 </div>
-                <div id="v-ai" class="text-sm font-bold text-slate-200 leading-relaxed italic">Node analyzing environmental patterns...</div>
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
+                    <i data-lucide="building-2" class="text-emerald-500 mb-6 w-10 h-10"></i>
+                    <h3 class="text-xl font-bold mb-4">Smart Cities</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Large-scale environmental sensing for urban development and sustainable living.</p>
+                </div>
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
+                    <i data-lucide="hospital" class="text-orange-500 mb-6 w-10 h-10"></i>
+                    <h3 class="text-xl font-bold mb-4">Healthcare</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Precision monitoring of humidity and temperature for medical storage units.</p>
+                </div>
             </div>
         </section>
 
-        <!-- Rain & Trends -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-20">
-            <div class="glass p-10 rounded-[3rem]">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 id="l-rain-title" class="font-black flex items-center gap-2"><i data-lucide="cloud-rain" class="text-blue-400"></i> Precipitation Analysis</h3>
-                    <div id="v-rain-val" class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400">0.0 mm/h</div>
-                </div>
-                <p id="v-rain-desc" class="text-slate-400 text-sm leading-relaxed mb-6">No active precipitation detected in this sector.</p>
-                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                    <div id="rain-bar" class="h-full bg-blue-500 transition-all duration-1000" style="width: 0%"></div>
-                </div>
+        <!-- NEW: Pricing Section -->
+        <section id="pricing" class="py-20">
+            <div class="text-center mb-16">
+                <h2 id="h-pricing" class="text-3xl font-black uppercase mb-4 tracking-widest">Scalable Plans</h2>
+                <p class="text-slate-500">Choose the right node capacity for your infrastructure.</p>
             </div>
-
-            <div class="glass p-10 rounded-[3rem]">
-                <h3 id="l-trend" class="font-black mb-8 flex items-center gap-2"><i data-lucide="line-chart" class="text-emerald-400"></i> Convergence History</h3>
-                <div class="h-[200px]">
-                    <canvas id="trendChart"></canvas>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <div class="glass p-10 rounded-[3rem] border border-slate-800">
+                    <div class="text-xs font-black text-slate-500 mb-4 uppercase">Starter</div>
+                    <div class="text-4xl font-black mb-6">$0<span class="text-sm text-slate-600">/mo</span></div>
+                    <ul class="text-sm space-y-4 text-slate-400 mb-10">
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> 1 Global Node</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Real-time Dashboard</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Public API</li>
+                    </ul>
+                    <button class="w-full py-4 border border-slate-700 rounded-2xl font-bold hover:bg-slate-800">Get Started</button>
+                </div>
+                <div class="glass p-10 rounded-[3rem] border-2 border-blue-600 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-widest">Popular</div>
+                    <div class="text-xs font-black text-blue-400 mb-4 uppercase">Professional</div>
+                    <div class="text-4xl font-black mb-6">$49<span class="text-sm text-slate-600">/mo</span></div>
+                    <ul class="text-sm space-y-4 text-white mb-10">
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> Up to 50 Nodes</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> AI Predictive Alerts</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> Advanced Reports</li>
+                    </ul>
+                    <button class="w-full py-4 btn-primary rounded-2xl font-bold">Select Pro</button>
+                </div>
+                <div class="glass p-10 rounded-[3rem] border border-slate-800">
+                    <div class="text-xs font-black text-slate-500 mb-4 uppercase">Enterprise</div>
+                    <div class="text-xl font-black mb-6">Custom Pricing</div>
+                    <ul class="text-sm space-y-4 text-slate-400 mb-10">
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Unlimited Nodes</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> 24/7 Dedicated Support</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Custom White-label</li>
+                    </ul>
+                    <button class="w-full py-4 border border-slate-700 rounded-2xl font-bold hover:bg-slate-800">Contact Sales</button>
                 </div>
             </div>
         </section>
+
     </main>
+
+    <footer class="py-20 text-center border-t border-slate-900 mt-20 opacity-40 text-[10px] font-black tracking-[0.5em] uppercase">
+        JYA.io | The Vital Chord of Connectivity
+    </footer>
 
     <script>
         lucide.createIcons();
 
         // Map Setup
         const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CARTO'
-        }).addTo(map);
-
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         let marker;
-        let timeInt;
 
-        // Click on Map Logic
-        map.on('click', function(e) {
-            const { lat, lng } = e.latlng;
-            syncData(null, lat, lng);
-        });
-
-        const lang = {
-            en: { temp: "Thermal", hum: "Humidity", wind: "Wind Speed", ai: "AI Analysis", rain: "Precipitation Analysis", trend: "Convergence History", search: "Search or click map..." },
-            ar: { temp: "الحرارة", hum: "الرطوبة", wind: "سرعة الرياح", ai: "تحليل الذكاء", rain: "تحليل الأمطار", trend: "تاريخ التقارب", search: "ابحث أو اضغط على الخريطة..." }
-        };
-
-        function toggleLang() {
-            const l = document.getElementById('langSwitch').value;
-            document.body.classList.toggle('rtl', l === 'ar');
-            document.getElementById('l-temp').innerText = lang[l].temp;
-            document.getElementById('l-hum').innerText = lang[l].hum;
-            document.getElementById('l-wind').innerText = lang[l].wind;
-            document.getElementById('l-ai').innerText = lang[l].ai;
-            document.getElementById('l-rain-title').innerHTML = `<i data-lucide="cloud-rain" class="text-blue-400"></i> ` + lang[l].rain;
-            document.getElementById('l-trend').innerHTML = `<i data-lucide="line-chart" class="text-emerald-400"></i> ` + lang[l].trend;
-            document.getElementById('searchInput').placeholder = lang[l].search;
-            lucide.createIcons();
-        }
+        map.on('click', function(e) { syncData(null, e.latlng.lat, e.latlng.lng); });
 
         async function syncData(city = null, lat = null, lon = null) {
             try {
                 let url = city ? `/api/weather?city=${encodeURIComponent(city)}` : `/api/weather?lat=${lat}&lon=${lon}`;
                 const res = await fetch(url);
                 const data = await res.json();
-
-                if (data.main) {
-                    const { lat: dLat, lon: dLon } = data.coord;
-                    
-                    // Update UI Stats
-                    document.getElementById('activeLocation').innerText = `${data.name}, ${data.sys.country}`;
+                if(data.main) {
+                    document.getElementById('activeCity').innerText = `ACTIVE NODE: ${data.name}, ${data.sys.country}`;
                     document.getElementById('v-temp').innerText = Math.round(data.main.temp);
                     document.getElementById('v-hum').innerText = data.main.humidity;
-                    document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6); // Convert m/s to km/h
-                    document.getElementById('v-wind-dir').innerText = `Direction: ${getWindDirection(data.wind.deg)}`;
+                    document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6);
+                    document.getElementById('v-ai').innerText = data.main.temp > 28 ? "High heat detected. Optimize cooling." : "Conditions stable. All nodes nominal.";
                     
-                    // Rain Logic
-                    const rain = data.rain ? data.rain['1h'] || 0 : 0;
-                    document.getElementById('v-rain-val').innerText = `${rain} mm/h`;
-                    document.getElementById('rain-bar').style.width = Math.min(rain * 10, 100) + '%';
-                    document.getElementById('v-rain-desc').innerText = rain > 0 ? `Detected rainfall in this node sector at ${rain}mm per hour.` : "Zero precipitation detected. Atmosphere is dry.";
-
-                    // AI Insight Logic
-                    updateAI(data);
-                    
-                    // Update Map
+                    const { lat: dLat, lon: dLon } = data.coord;
                     map.flyTo([dLat, dLon], 10);
                     if(marker) map.removeLayer(marker);
-                    marker = L.marker([dLat, dLon], { icon: L.divIcon({ className: 'pulse-node' }) }).addTo(map);
-
-                    // Clock Logic
-                    startClock(data.timezone);
-                    updateChart(data.main.temp);
+                    marker = L.marker([dLat, dLon], { icon: L.divIcon({ className: 'w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg shadow-blue-500' }) }).addTo(map);
                 }
-            } catch (e) { console.error("Sync Failure"); }
+            } catch (e) { console.error("Sync Error"); }
         }
 
-        function getWindDirection(deg) {
-            const val = Math.floor((deg / 22.5) + 0.5);
-            const arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-            return arr[(val % 16)];
+        const trans = {
+            en: { hNode: "Global Node Monitor", hSolutions: "Industry Solutions", hPricing: "Scalable Plans" },
+            ar: { hNode: "مراقب العقد العالمي", hSolutions: "حلول القطاعات", hPricing: "خطط الأسعار" }
+        };
+
+        function toggleLang() {
+            const l = document.getElementById('langSwitch').value;
+            document.body.classList.toggle('rtl', l === 'ar');
+            document.getElementById('h-node').innerText = trans[l].hNode;
+            document.getElementById('h-solutions').innerText = trans[l].hSolutions;
+            document.getElementById('h-pricing').innerText = trans[l].hPricing;
         }
 
-        function updateAI(data) {
-            const t = data.main.temp;
-            const w = data.wind.speed * 3.6;
-            const r = data.rain ? data.rain['1h'] || 0 : 0;
-            let msg = "";
-
-            if (r > 0) msg = "Rain detected. Humidity rising. System auto-adjusting for moisture protection.";
-            else if (w > 40) msg = "High wind alert. Sensor stability compromised. Secure hardware nodes.";
-            else if (t > 35) msg = "Thermal stress detected. Cooling fans at 100% capacity.";
-            else msg = "All systems nominal. Environment optimized for JYA Nexus protocol.";
-
-            document.getElementById('v-ai').innerText = msg;
-        }
-
-        function startClock(offset) {
-            if(timeInt) clearInterval(timeInt);
-            timeInt = setInterval(() => {
-                const now = new Date();
-                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-                const local = new Date(utc + (1000 * offset));
-                document.getElementById('localTime').innerText = local.toLocaleTimeString();
-            }, 1000);
-        }
-
-        // Chart.js
-        const ctx = document.getElementById('trendChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', tension: 0.4, fill: false, borderWidth: 3, pointRadius: 0 }]},
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { grid: { color: '#1e293b' } }, x: { display: false } }}
-        });
-
-        function updateChart(val) {
-            chart.data.labels.push("");
-            chart.data.datasets[0].data.push(val);
-            if(chart.data.labels.length > 15) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
-            chart.update();
-        }
-
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') syncData(e.target.value);
-        });
-
-        // Initial Sync
         syncData("Samawah");
+        document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') syncData(e.target.value); });
     </script>
 </body>
 </html>
