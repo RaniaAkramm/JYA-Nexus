@@ -1,241 +1,330 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JYA Nexus | Global Node Monitor</title>
-    
-    <!-- كود الربط الأساسي لجوجل أدسنس -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-63627b819695032bb8f19182b6f25bdf" crossorigin="anonymous"></script>
+import React, { useState, useEffect, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+  Sun, Moon, Search, Navigation, MapPin, Wind, Droplets, Eye, 
+  Thermometer, SunMedium, CloudRain, Clock, Calendar, 
+  AlertTriangle, BrainCircuit, ChevronRight, Languages,
+  Zap, Cloud, Navigation2, Info, ArrowUpRight, Map as MapIcon
+} from 'lucide-react';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+} from 'recharts';
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; background: #010409; color: white; scroll-behavior: smooth; overflow-x: hidden; }
-        .glass { background: rgba(13, 17, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .rtl { direction: rtl; }
-        #map { height: 400px; width: 100%; border-radius: 2rem; border: 1px solid rgba(59, 130, 246, 0.2); z-index: 10; }
-        .ad-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.15); margin-bottom: 2px; text-align: center; display: block; }
-        input::placeholder { color: #475569; }
-    </style>
-</head>
-<body>
+// --- إعدادات الحسابات ---
+const API_KEY = "63627b819695032bb8f19182b6f25bdf";
+const ADS_CLIENT = "ca-pub-63627b819695032bb8f19182b6f25bdf"; // رقم الناشر الخاص بك
 
-    <!-- Nav -->
-    <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between glass sticky top-4 z-[100] m-4 rounded-3xl">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black shadow-lg shadow-blue-500/20">J</div>
-            <span class="text-2xl font-black tracking-tighter">JYA<span class="text-blue-500">.io</span></span>
-        </div>
-        <div class="hidden md:flex gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            <a href="#dashboard" class="hover:text-blue-500 transition-colors">Monitoring</a>
-            <a href="#solutions" class="hover:text-blue-500 transition-colors">Solutions</a>
-        </div>
-        <div class="flex items-center gap-4">
-            <select id="langSwitch" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-bold outline-none cursor-pointer hover:border-blue-500 transition-all">
-                <option value="en">EN</option>
-                <option value="ar">AR</option>
-            </select>
-        </div>
-    </nav>
+const App = () => {
+  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState([]);
+  const [city, setCity] = useState('Samawah');
+  const [lang, setLang] = useState('ar');
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-    <main class="max-w-7xl mx-auto px-6">
+  // تحديث الوقت الحي
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // جلب البيانات من API
+  const fetchData = async (lat, lon, cityName = null) => {
+    setLoading(true);
+    try {
+      const q = cityName || city;
+      const weatherUrl = lat && lon 
+        ? `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=${lang}&appid=${API_KEY}`
+        : `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(q)}&units=metric&lang=${lang}&appid=${API_KEY}`;
+      
+      const forecastUrl = lat && lon
+        ? `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=${lang}&appid=${API_KEY}`
+        : `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(q)}&units=metric&lang=${lang}&appid=${API_KEY}`;
+
+      const [wRes, fRes] = await Promise.all([fetch(weatherUrl), fetch(forecastUrl)]);
+      const wData = await wRes.json();
+      const fData = await fRes.json();
+
+      if (wData.main) {
+        setWeather(wData);
+        setForecast(fData.list);
+      }
+    } catch (e) {
+      console.error("Error fetching weather data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, [lang]);
+
+  // ميزة تحديد الموقع GPS
+  const getMyLocation = () => {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      fetchData(pos.coords.latitude, pos.coords.longitude);
+    });
+  };
+
+  // ترجمة الواجهة
+  const i18n = {
+    ar: { 
+      search: "ابحث عن مدينة...", feels: "يشعر وكأنه", hum: "الرطوبة", wind: "الرياح", vis: "الرؤية", uv: "الأشعة UV", rain: "المطر",
+      ai_title: "تحليل الطقس الذكي", hourly: "توقعات الساعات القادمة", weekly: "توقعات الأسبوع", tip: "نصيحة اليوم", direction: "rtl",
+      ad_label: "إعلان مدعوم"
+    },
+    en: { 
+      search: "Search city...", feels: "Feels like", hum: "Humidity", wind: "Wind", vis: "Visibility", uv: "UV Index", rain: "Rain",
+      ai_title: "AI Weather Analysis", hourly: "Hourly Forecast", weekly: "Weekly Forecast", tip: "Daily Tip", direction: "ltr",
+      ad_label: "Sponsored Ad"
+    }
+  }[lang];
+
+  // منطق التحليل الذكي (AI Logic)
+  const getAIAdvice = () => {
+    if (!weather) return "";
+    const t = weather.main.temp;
+    const h = weather.main.humidity;
+    if (lang === 'ar') {
+      if (t > 30) return `اليوم الطقس حار (${Math.round(t)}°C)، الرطوبة مرتفعة (${h}%) مما يزيد الشعور بالحرارة. يُنصح بملابس قطنية خفيفة.`;
+      if (t < 18) return `الأجواء باردة نسبياً، يُفضل ارتداء سترة خفيفة عند الخروج مساءً.`;
+      return `الأجواء مثالية للنشاطات الخارجية، استمتع بيومك!`;
+    }
+    return `The weather is currently ${weather.weather[0].description}. It's ${Math.round(t)}°C, stay comfortable!`;
+  };
+
+  // تفعيل إعلانات أدسنس يدوياً
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {}
+  }, [weather]);
+
+  return (
+    <div className={`min-h-screen transition-all duration-500 ${isDarkMode ? 'bg-[#020617] text-white' : 'bg-slate-50 text-slate-900'} ${i18n.direction === 'rtl' ? 'rtl' : 'ltr'}`}>
+      
+      {/* 1. Navbar & Search */}
+      <nav className={`sticky top-0 z-[100] px-6 h-20 flex items-center justify-between gap-4 backdrop-blur-xl border-b ${isDarkMode ? 'bg-[#020617]/80 border-slate-800' : 'bg-white/80 border-slate-200 shadow-sm'}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/40">
+            <Zap size={20} className="text-white fill-current" />
+          </div>
+          <span className="text-2xl font-black tracking-tighter hidden md:block">JYA<span className="text-blue-500">.io</span></span>
+        </div>
+
+        <div className="flex-1 max-w-2xl flex items-center gap-2 relative">
+          <div className="relative flex-1 group">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+             <input 
+                type="text" 
+                placeholder={i18n.search}
+                className={`w-full py-3.5 pl-12 pr-4 rounded-2xl outline-none border transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 focus:border-blue-500' : 'bg-white border-slate-200 focus:border-blue-500'}`}
+                onKeyPress={(e) => e.key === 'Enter' && fetchData(null, null, e.target.value)}
+             />
+          </div>
+          <button onClick={getMyLocation} className={`p-3.5 rounded-2xl border transition-all hover:scale-105 active:scale-95 ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:text-blue-500' : 'bg-white border-slate-200 hover:text-blue-600 shadow-sm'}`}>
+            <Navigation size={18} />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="p-2.5 rounded-xl border border-transparent hover:bg-blue-500/10 transition-all font-black text-xs uppercase tracking-widest">
+            {lang === 'ar' ? 'EN' : 'AR'}
+          </button>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'text-yellow-400' : 'text-blue-600'}`}>
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
         
-        <!-- Header & Search -->
-        <section id="dashboard" class="pt-12 pb-6">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-                <div>
-                    <h2 id="h-node" class="text-4xl font-black mb-2 uppercase tracking-tighter">Global Node Monitor</h2>
-                    <p class="text-blue-400 font-bold text-[10px] tracking-widest uppercase" id="activeCity">Initializing Sync...</p>
-                </div>
-                <div class="max-w-md w-full relative group">
-                    <input type="text" id="searchInput" placeholder="Enter city name (e.g. Samawah)..." 
-                        class="w-full bg-slate-900 border border-slate-800 py-4 pl-6 pr-24 rounded-2xl outline-none focus:border-blue-500 transition-all shadow-2xl">
-                    <button onclick="syncData()" class="absolute right-2 top-2 bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all">Sync</button>
-                </div>
-            </div>
-
-            <!-- الإعلان 1: فوق الخريطة (صغير جداً) -->
-            <div class="mb-8 flex flex-col items-center">
-                <span class="ad-label" id="ad-top-text">Sponsored Node</span>
-                <div class="bg-slate-900/40 rounded-xl overflow-hidden flex items-center justify-center border border-slate-800/50 min-h-[60px] w-full max-w-[320px]">
-                    <ins class="adsbygoogle"
-                         style="display:inline-block;width:320px;height:50px"
-                         data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf"
-                         data-ad-slot="1234567890"></ins>
-                </div>
-            </div>
-
-            <div id="map" class="mb-12 shadow-2xl"></div>
-        </section>
-
-        <!-- Stats Grid with Side Ad -->
-        <div class="flex flex-col lg:flex-row gap-6 mb-20">
-            
-            <!-- الإعلان 2: بجانب النتائج (مربع صغير 200x200) -->
-            <div class="lg:w-64 bg-slate-900/30 rounded-[2.5rem] border border-slate-800/50 p-6 flex flex-col items-center justify-center shrink-0">
-                <span class="ad-label" id="ad-side-text">ADVERTISEMENT</span>
-                <div class="w-full h-full min-h-[200px] flex items-center justify-center">
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf"
-                         data-ad-slot="0987654321"
-                         data-ad-format="rectangle"
-                         data-full-width-responsive="true"></ins>
-                </div>
-            </div>
-
-            <!-- بطاقات النتائج -->
-            <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
-                    <i data-lucide="thermometer" class="text-orange-500 mb-4"></i>
-                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1" id="t-temp">Temperature</div>
-                    <div class="text-5xl font-black tracking-tighter"><span id="v-temp">--</span>°C</div>
-                </div>
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                    <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
-                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1" id="t-hum">Humidity</div>
-                    <div class="text-5xl font-black tracking-tighter"><span id="v-hum">--</span>%</div>
-                </div>
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
-                    <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
-                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1" id="t-wind">Wind Speed</div>
-                    <div class="text-5xl font-black tracking-tighter"><span id="v-wind">--</span><span class="text-xs ml-1 font-bold text-slate-600">km/h</span></div>
-                </div>
-            </div>
+        {/* --- الإعلان العلوي (TOP AD) --- */}
+        <div className="mb-8 flex flex-col items-center">
+          <span className="text-[9px] font-black uppercase opacity-20 tracking-widest mb-1">{i18n.ad_label}</span>
+          <div className={`w-full max-w-[728px] h-20 rounded-2xl border flex items-center justify-center overflow-hidden ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200'}`}>
+             <ins className="adsbygoogle"
+                  style={{ display: 'inline-block', width: '728px', height: '90px' }}
+                  data-ad-client={ADS_CLIENT}
+                  data-ad-slot="1234567890"></ins>
+          </div>
         </div>
 
-        <!-- Solutions -->
-        <section id="solutions" class="py-20 border-t border-slate-900/50">
-            <h2 id="h-solutions" class="text-3xl font-black mb-12 text-center uppercase tracking-[0.3em]">Industry Solutions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="factory" class="text-blue-500 mb-6 w-10 h-10"></i>
-                    <h3 class="text-xl font-bold mb-4">Smart Industry</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Advanced environmental monitoring for global infrastructure.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* العمود الأيسر: بطاقة الطقس والتحليل */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* البطاقة الرئيسية */}
+            <section className={`relative p-10 rounded-[3rem] border overflow-hidden ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200 shadow-xl'}`}>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -z-10"></div>
+              
+              <div className="flex flex-col md:flex-row justify-between gap-10">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-blue-500 font-black uppercase text-xs tracking-widest">
+                    <MapPin size={16} /> {weather?.name || 'Loading...'}, {weather?.sys.country}
+                  </div>
+                  <div>
+                    <h2 className="text-7xl md:text-9xl font-black tracking-tighter">
+                      {weather ? Math.round(weather.main.temp) : '--'}°
+                    </h2>
+                    <p className="text-xl font-bold opacity-60 flex items-center gap-2 mt-2">
+                       {weather?.weather[0].main} <span className="w-1 h-1 bg-slate-500 rounded-full"></span> {i18n.feels} {weather ? Math.round(weather.main.feels_like) : '--'}°
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs font-bold opacity-40">
+                    <span className="flex items-center gap-1"><Clock size={14}/> {currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="flex items-center gap-1"><Calendar size={14}/> {currentTime.toLocaleDateString(lang, {weekday: 'long', day: 'numeric', month: 'short'})}</span>
+                  </div>
                 </div>
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="building-2" class="text-emerald-500 mb-6 w-10 h-10"></i>
-                    <h3 class="text-xl font-bold mb-4">Smart Cities</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Sustainable urban sensing for next-gen development.</p>
-                </div>
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="brain-circuit" class="text-purple-500 mb-6 w-10 h-10"></i>
-                    <h3 class="text-xl font-bold mb-4">AI Prediction</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Neural network analysis for atmospheric data precision.</p>
-                </div>
-            </div>
-        </section>
 
-        <!-- الإعلان 3: في الأسفل -->
-        <div class="py-12 border-t border-slate-900/50 flex flex-col items-center">
-            <span class="ad-label" id="ad-bottom-text">Support JYA.io</span>
-            <div class="w-full max-w-4xl bg-slate-900/20 rounded-2xl p-2 min-h-[90px] flex items-center justify-center border border-slate-800/30">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf"
+                <div className="flex flex-col items-center justify-center bg-blue-500/5 rounded-[2.5rem] px-8 py-6 border border-blue-500/10">
+                   {weather?.weather[0].main === 'Clear' ? <Sun size={100} className="text-yellow-400 drop-shadow-2xl animate-pulse" /> : <Cloud size={100} className="text-slate-400" />}
+                   <span className="mt-4 font-black text-sm uppercase tracking-widest text-blue-400">{weather?.weather[0].description}</span>
+                </div>
+              </div>
+
+              {/* قسم التحليل الذكي (AI Analysis) */}
+              <div className={`mt-12 p-6 rounded-[2rem] border flex gap-4 ${isDarkMode ? 'bg-blue-600/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
+                <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/30">
+                  <BrainCircuit size={24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-[10px] uppercase tracking-widest text-blue-500 mb-1">{i18n.ai_title}</h4>
+                  <p className="text-sm font-bold opacity-80 italic leading-relaxed">
+                    "{getAIAdvice()}"
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* تفاصيل الطقس الاحترافية */}
+            <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+               {[
+                 { label: i18n.hum, val: `${weather?.main.humidity}%`, icon: Droplets, color: 'text-blue-400', desc: "High humidity, feels warmer.", status: weather?.main.humidity > 70 ? 'danger' : 'safe' },
+                 { label: i18n.wind, val: `${Math.round(weather?.wind.speed * 3.6)} km/h`, icon: Wind, color: 'text-emerald-400', desc: "Moderate north-east wind." },
+                 { label: i18n.vis, val: `${(weather?.visibility / 1000).toFixed(1)} km`, icon: Eye, color: 'text-purple-400', desc: "Good overall visibility." },
+                 { label: i18n.uv, val: "8 / 11", icon: SunMedium, color: 'text-yellow-500', desc: "High UV, use protection." },
+                 { label: i18n.rain, val: `${weather?.rain?.['1h'] || 0} %`, icon: CloudRain, color: 'text-cyan-400', desc: "Low chance of precipitation." },
+                 { label: "Pressure", val: `${weather?.main.pressure} hPa`, icon: Info, color: 'text-slate-400', desc: "Atmospheric pressure stable." }
+               ].map((item, idx) => (
+                 <div key={idx} className={`p-6 rounded-[2.5rem] border transition-all hover:scale-[1.02] ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200'}`}>
+                    <div className="flex justify-between items-start mb-6">
+                       <item.icon size={20} className={item.color} />
+                       <span className="text-[9px] font-black uppercase opacity-30 tracking-widest">{item.label}</span>
+                    </div>
+                    <div className="text-3xl font-black mb-2">{item.val}</div>
+                    <p className="text-[10px] font-medium opacity-40 leading-tight">{item.desc}</p>
+                    {item.status && (
+                      <div className="mt-4 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.status === 'danger' ? 'bg-red-500' : 'bg-blue-500'}`} style={{width: item.val}}></div>
+                      </div>
+                    )}
+                 </div>
+               ))}
+            </section>
+
+            {/* رسم بياني لتوقعات الساعات */}
+            <section className={`p-8 rounded-[3rem] border ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <h3 className="text-xl font-black uppercase tracking-tighter mb-8 flex items-center gap-2">
+                 <Clock size={20} className="text-blue-500" /> {i18n.hourly}
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                   <AreaChart data={forecast.slice(0, 8).map(f => ({ time: new Date(f.dt * 1000).getHours() + ":00", temp: Math.round(f.main.temp) }))}>
+                      <defs>
+                        <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#334155" : "#e2e8f0"} vertical={false} />
+                      <XAxis dataKey="time" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
+                      <YAxis hide domain={['auto', 'auto']} />
+                      <Tooltip contentStyle={{ borderRadius: '16px', backgroundColor: '#0f172a', border: 'none', color: '#fff' }} />
+                      <Area type="monotone" dataKey="temp" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorTemp)" />
+                   </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          </div>
+
+          {/* العمود الأيمن: إعلان جانبي وتوقعات الأسبوع */}
+          <aside className="lg:col-span-4 space-y-6">
+            
+            {/* --- الإعلان الجانبي (SIDEBAR AD) --- */}
+            <div className={`p-6 rounded-[2.5rem] border flex flex-col items-center justify-center text-center ${isDarkMode ? 'bg-slate-900/20 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+               <span className="text-[8px] font-black uppercase opacity-20 mb-4 tracking-[0.4em]">{i18n.ad_label}</span>
+               <div className="w-full h-[250px] border border-dashed border-slate-800 flex items-center justify-center rounded-2xl">
+                  <ins className="adsbygoogle"
+                       style={{ display: 'block' }}
+                       data-ad-client={ADS_CLIENT}
+                       data-ad-slot="0987654321"
+                       data-ad-format="rectangle"></ins>
+               </div>
+            </div>
+
+            {/* توقعات الأسبوع */}
+            <div className={`p-8 rounded-[3rem] border ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200 shadow-xl'}`}>
+              <h3 className="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
+                 <Calendar size={18} className="text-blue-500" /> {i18n.weekly}
+              </h3>
+              <div className="space-y-3">
+                {forecast.filter((_, i) => i % 8 === 0).slice(0, 5).map((day, idx) => (
+                  <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl transition-all hover:bg-blue-600/5 group`}>
+                    <span className="text-sm font-bold opacity-40 w-12">{new Date(day.dt * 1000).toLocaleDateString(lang, {weekday: 'short'})}</span>
+                    <div className="flex items-center gap-3">
+                       <Cloud size={18} className="text-blue-400" />
+                       <span className="text-xs font-black uppercase tracking-tighter">{day.weather[0].main}</span>
+                    </div>
+                    <div className="flex gap-3 text-sm font-black">
+                       <span className="text-blue-500">{Math.round(day.main.temp_max)}°</span>
+                       <span className="opacity-20">{Math.round(day.main.temp_min)}°</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* بطاقة نصيحة اليوم */}
+            <div className="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden">
+               <ArrowUpRight className="absolute -top-4 -right-4 w-24 h-24 text-white/10" />
+               <h4 className="text-xl font-black mb-2 uppercase flex items-center gap-2">
+                  <Sun size={20} className="text-yellow-300" /> {i18n.tip}
+               </h4>
+               <p className="text-sm font-medium opacity-90 leading-relaxed italic">
+                 {weather?.main.temp > 30 ? "Drink plenty of water today and avoid direct sunlight." : "Great weather for outdoor activities, enjoy your day!"}
+               </p>
+            </div>
+          </aside>
+        </div>
+
+        {/* --- الإعلان السفلي (BOTTOM AD) --- */}
+        <div className="mt-16 py-10 border-t border-slate-900/50 flex flex-col items-center">
+            <span className="text-[8px] font-black uppercase opacity-20 mb-4 tracking-[0.4em]">{i18n.ad_label}</span>
+            <div className={`w-full max-w-4xl h-24 rounded-2xl border flex items-center justify-center overflow-hidden ${isDarkMode ? 'bg-slate-900/20 border-slate-800' : 'bg-white border-slate-200'}`}>
+                <ins className="adsbygoogle"
+                     style={{ display: 'block' }}
+                     data-ad-client={ADS_CLIENT}
                      data-ad-slot="1122334455"
                      data-ad-format="auto"
                      data-full-width-responsive="true"></ins>
             </div>
         </div>
+      </main>
 
-    </main>
-
-    <footer class="py-12 text-center border-t border-slate-900/50 opacity-40">
-        <p class="text-[9px] font-black tracking-[0.8em] uppercase mb-4">JYA.io Global Network System</p>
-        <div class="flex justify-center gap-6 text-[8px] font-black uppercase tracking-widest text-slate-500">
-            <a href="#" class="hover:text-blue-500">Privacy</a>
-            <a href="#" class="hover:text-blue-500">Terms</a>
+      <footer className={`py-12 border-t text-center ${isDarkMode ? 'border-slate-800 text-slate-600' : 'border-slate-200 text-slate-400'}`}>
+        <p className="text-[10px] font-black tracking-[1em] uppercase mb-4">JYA.io Global Network</p>
+        <div className="flex justify-center gap-6 text-[8px] font-black uppercase tracking-widest">
+            <a href="#" className="hover:text-blue-500 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-blue-500 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-blue-500 transition-colors">Nodes Status</a>
         </div>
-    </footer>
+      </footer>
+    </div>
+  );
+};
 
-    <script>
-        lucide.createIcons();
+export default App;
 
-        // Map Initialize
-        const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-        let marker;
-
-        // Click on map to sync
-        map.on('click', function(e) { syncData(null, e.latlng.lat, e.latlng.lng); });
-
-        // Fixed Sync Function
-        async function syncData(city = null, lat = null, lon = null) {
-            // If no city provided, take from input field
-            const searchVal = document.getElementById('searchInput').value;
-            const targetCity = city || searchVal || "Samawah";
-            
-            try {
-                document.getElementById('activeCity').innerText = "SYNCING NODE DATA...";
-                
-                let url = (lat && lon) 
-                    ? `/api/weather?lat=${lat}&lon=${lon}` 
-                    : `/api/weather?city=${encodeURIComponent(targetCity)}`;
-
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                if(data.main) {
-                    document.getElementById('activeCity').innerText = `NODE ACTIVE: ${data.name.toUpperCase()}, ${data.sys.country}`;
-                    document.getElementById('v-temp').innerText = Math.round(data.main.temp);
-                    document.getElementById('v-hum').innerText = data.main.humidity;
-                    document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6);
-                    
-                    const { lat: dLat, lon: dLon } = data.coord;
-                    map.flyTo([dLat, dLon], 10);
-                    
-                    if(marker) map.removeLayer(marker);
-                    marker = L.marker([dLat, dLon], { 
-                        icon: L.divIcon({ 
-                            className: 'w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-2xl shadow-blue-500' 
-                        }) 
-                    }).addTo(map);
-                    
-                    // Clear input after search
-                    if (!city) document.getElementById('searchInput').value = "";
-                } else {
-                    document.getElementById('activeCity').innerText = "NODE NOT FOUND. RETRYING...";
-                }
-            } catch (e) { 
-                console.error("Sync Error:", e);
-                document.getElementById('activeCity').innerText = "CONNECTION ERROR.";
-            }
-        }
-
-        const trans = {
-            en: { hNode: "Global Node Monitor", hSolutions: "Industry Solutions", tTemp: "Temperature", tHum: "Humidity", tWind: "Wind Speed", adTop: "Sponsored Node", adSide: "Advertisement", adBottom: "Support JYA.io" },
-            ar: { hNode: "مراقب العقد العالمي", hSolutions: "حلول القطاعات", tTemp: "درجة الحرارة", tHum: "الرطوبة", tWind: "سرعة الرياح", adTop: "عقدة ممولة", adSide: "مساحة إعلانية", adBottom: "دعم JYA.io" }
-        };
-
-        function toggleLang() {
-            const l = document.getElementById('langSwitch').value;
-            document.body.classList.toggle('rtl', l === 'ar');
-            document.getElementById('h-node').innerText = trans[l].hNode;
-            document.getElementById('h-solutions').innerText = trans[l].hSolutions;
-            document.getElementById('t-temp').innerText = trans[l].tTemp;
-            document.getElementById('t-hum').innerText = trans[l].tHum;
-            document.getElementById('t-wind').innerText = trans[l].tWind;
-            document.getElementById('ad-top-text').innerText = trans[l].adTop;
-            document.getElementById('ad-side-text').innerText = trans[l].adSide;
-            document.getElementById('ad-bottom-text').innerText = trans[l].adBottom;
-            document.getElementById('searchInput').placeholder = (l === 'ar') ? "أدخل اسم المدينة..." : "Enter city name...";
-        }
-
-        // Initial Sync
-        syncData("Samawah");
-
-        // Search Input Enter Key Listener
-        document.getElementById('searchInput').addEventListener('keypress', (e) => { 
-            if(e.key === 'Enter') syncData(); 
-        });
-
-        // Initialize Ads
-        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
-    </script>
-</body>
-</html>
