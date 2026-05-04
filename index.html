@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JYA Nexus | The Future of AIoT Business</title>
+    
+    <!-- كود الربط الأساسي لجوجل أدسنس (ضعه هنا) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,7 +20,8 @@
         .rtl { direction: rtl; }
         .btn-primary { background: linear-gradient(90deg, #3b82f6, #2563eb); transition: all 0.3s; }
         .btn-primary:hover { filter: brightness(1.2); transform: scale(1.05); }
-        #map { height: 450px; width: 100%; border-radius: 2.5rem; border: 1px solid rgba(59, 130, 246, 0.2); }
+        #map { height: 400px; width: 100%; border-radius: 2rem; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .ad-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.1); margin-bottom: 4px; display: block; text-align: center; }
     </style>
 </head>
 <body>
@@ -37,120 +42,127 @@
                 <option value="en">EN</option>
                 <option value="ar">AR</option>
             </select>
-            <button class="btn-primary text-white px-6 py-2 rounded-full text-xs font-black uppercase">Login</button>
+            <button class="btn-primary text-white px-6 py-2 rounded-full text-xs font-black uppercase shadow-lg shadow-blue-500/20">Login</button>
         </div>
     </nav>
 
-    <!-- Main -->
     <main class="max-w-7xl mx-auto px-6">
         
         <!-- Dashboard Header -->
-        <section id="dashboard" class="py-12">
+        <section id="dashboard" class="pt-12 pb-6">
             <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
                 <div>
                     <h2 id="h-node" class="text-4xl font-black mb-2 uppercase">Global Node Monitor</h2>
                     <p class="text-blue-400 font-bold text-xs" id="activeCity">SYNCING WITH SAMAWAH, IQ...</p>
                 </div>
                 <div class="max-w-md w-full relative">
-                    <input type="text" id="searchInput" placeholder="Search city or click map..." 
+                    <input type="text" id="searchInput" placeholder="Search city..." 
                         class="w-full bg-slate-900 border border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-blue-500 transition-all">
                     <button onclick="syncData()" class="absolute right-2 top-2 bg-blue-600 px-6 py-2 rounded-xl text-xs font-bold">Sync</button>
                 </div>
             </div>
+
+            <!-- الإعلان الأول: فوق الخريطة (بانر صغير جداً) -->
+            <div class="mb-8 flex flex-col items-center">
+                <span class="ad-label" id="ad-top-text">إعلان ممول</span>
+                <div class="bg-slate-900/40 rounded-xl overflow-hidden flex items-center justify-center border border-slate-800/50 min-h-[60px] w-full max-w-[320px]">
+                    <!-- كود الوحدة الإعلانية العلوية -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:320px;height:50px"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="1234567890"></ins>
+                </div>
+            </div>
+
             <div id="map" class="mb-12"></div>
         </section>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20">
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
-                <i data-lucide="thermometer" class="text-orange-500 mb-4"></i>
-                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Temperature</div>
-                <div class="text-4xl font-black"><span id="v-temp">--</span>°C</div>
+        <!-- Stats Grid with Side Ad -->
+        <div class="flex flex-col lg:flex-row gap-6 mb-20 items-stretch">
+            
+            <!-- الإعلان الثاني: بجانب النتائج (مربع صغير) -->
+            <div class="lg:w-64 bg-slate-900/30 rounded-[2.5rem] border border-slate-800/50 p-6 flex flex-col items-center justify-center shrink-0">
+                <span class="ad-label" id="ad-side-text">إعلان</span>
+                <div class="w-full h-full min-h-[200px] flex items-center justify-center">
+                    <!-- كود الوحدة الإعلانية الجانبية -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="0987654321"
+                         data-ad-format="rectangle"
+                         data-full-width-responsive="true"></ins>
+                </div>
             </div>
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
-                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Humidity</div>
-                <div class="text-4xl font-black"><span id="v-hum">--</span>%</div>
-            </div>
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
-                <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
-                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Wind</div>
-                <div class="text-4xl font-black"><span id="v-wind">--</span><span class="text-xs ml-1">km/h</span></div>
-            </div>
-            <div class="glass p-8 rounded-[2.5rem] bg-blue-600/10 border-blue-500/20">
-                <i data-lucide="brain" class="text-purple-400 mb-4"></i>
-                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">AI Insight</div>
-                <div id="v-ai" class="text-xs font-bold text-blue-300 italic">Processing data...</div>
+
+            <!-- بطاقات النتائج -->
+            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500 hover:bg-slate-900/60 transition-colors">
+                    <i data-lucide="thermometer" class="text-orange-500 mb-4"></i>
+                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Temperature</div>
+                    <div class="text-4xl font-black"><span id="v-temp">--</span>°C</div>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500 hover:bg-slate-900/60 transition-colors">
+                    <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
+                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Humidity</div>
+                    <div class="text-4xl font-black"><span id="v-hum">--</span>%</div>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500 hover:bg-slate-900/60 transition-colors">
+                    <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
+                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Wind</div>
+                    <div class="text-4xl font-black"><span id="v-wind">--</span><span class="text-xs ml-1">km/h</span></div>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem] bg-blue-600/10 border-blue-500/20 border-l-4 border-purple-500">
+                    <i data-lucide="brain" class="text-purple-400 mb-4"></i>
+                    <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">AI Insight</div>
+                    <div id="v-ai" class="text-xs font-bold text-blue-300 italic">Processing...</div>
+                </div>
             </div>
         </div>
 
-        <!-- NEW: Industry Solutions Section -->
-        <section id="solutions" class="py-20 border-t border-slate-900">
+        <!-- Solutions & Pricing (باقي الأقسام كما هي) -->
+        <section id="solutions" class="py-20 border-t border-slate-900/50">
             <h2 id="h-solutions" class="text-3xl font-black mb-12 text-center uppercase tracking-widest">Industry Solutions</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="factory" class="text-blue-500 mb-6 w-10 h-10"></i>
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all group">
+                    <i data-lucide="factory" class="text-blue-500 mb-6 w-10 h-10 group-hover:scale-110 transition-transform"></i>
                     <h3 class="text-xl font-bold mb-4">Smart Industry</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Predictive maintenance and air quality monitoring for manufacturing plants.</p>
+                    <p class="text-slate-500 text-sm leading-relaxed">Predictive maintenance for manufacturing plants.</p>
                 </div>
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="building-2" class="text-emerald-500 mb-6 w-10 h-10"></i>
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all group">
+                    <i data-lucide="building-2" class="text-emerald-500 mb-6 w-10 h-10 group-hover:scale-110 transition-transform"></i>
                     <h3 class="text-xl font-bold mb-4">Smart Cities</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Large-scale environmental sensing for urban development and sustainable living.</p>
+                    <p class="text-slate-500 text-sm leading-relaxed">Urban development environmental sensing.</p>
                 </div>
-                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all">
-                    <i data-lucide="hospital" class="text-orange-500 mb-6 w-10 h-10"></i>
+                <div class="glass p-10 rounded-[3rem] hover:bg-slate-900/50 transition-all group">
+                    <i data-lucide="hospital" class="text-orange-500 mb-6 w-10 h-10 group-hover:scale-110 transition-transform"></i>
                     <h3 class="text-xl font-bold mb-4">Healthcare</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Precision monitoring of humidity and temperature for medical storage units.</p>
+                    <p class="text-slate-500 text-sm leading-relaxed">Precision monitoring for medical units.</p>
                 </div>
             </div>
         </section>
 
-        <!-- NEW: Pricing Section -->
-        <section id="pricing" class="py-20">
-            <div class="text-center mb-16">
-                <h2 id="h-pricing" class="text-3xl font-black uppercase mb-4 tracking-widest">Scalable Plans</h2>
-                <p class="text-slate-500">Choose the right node capacity for your infrastructure.</p>
+        <!-- الإعلان الثالث: في الأسفل قبل الفوتر -->
+        <div class="py-12 border-t border-slate-900/50 flex flex-col items-center">
+            <span class="ad-label" id="ad-bottom-text">محتوى مدعوم</span>
+            <div class="w-full max-w-4xl bg-slate-900/20 rounded-2xl p-2 min-h-[90px] flex items-center justify-center border border-slate-800/30">
+                <!-- كود الوحدة الإعلانية السفلية -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                     data-ad-slot="1122334455"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <div class="glass p-10 rounded-[3rem] border border-slate-800">
-                    <div class="text-xs font-black text-slate-500 mb-4 uppercase">Starter</div>
-                    <div class="text-4xl font-black mb-6">$0<span class="text-sm text-slate-600">/mo</span></div>
-                    <ul class="text-sm space-y-4 text-slate-400 mb-10">
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> 1 Global Node</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Real-time Dashboard</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Public API</li>
-                    </ul>
-                    <button class="w-full py-4 border border-slate-700 rounded-2xl font-bold hover:bg-slate-800">Get Started</button>
-                </div>
-                <div class="glass p-10 rounded-[3rem] border-2 border-blue-600 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-blue-600 text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-widest">Popular</div>
-                    <div class="text-xs font-black text-blue-400 mb-4 uppercase">Professional</div>
-                    <div class="text-4xl font-black mb-6">$49<span class="text-sm text-slate-600">/mo</span></div>
-                    <ul class="text-sm space-y-4 text-white mb-10">
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> Up to 50 Nodes</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> AI Predictive Alerts</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14" class="text-blue-500"></i> Advanced Reports</li>
-                    </ul>
-                    <button class="w-full py-4 btn-primary rounded-2xl font-bold">Select Pro</button>
-                </div>
-                <div class="glass p-10 rounded-[3rem] border border-slate-800">
-                    <div class="text-xs font-black text-slate-500 mb-4 uppercase">Enterprise</div>
-                    <div class="text-xl font-black mb-6">Custom Pricing</div>
-                    <ul class="text-sm space-y-4 text-slate-400 mb-10">
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Unlimited Nodes</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> 24/7 Dedicated Support</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" size="14"></i> Custom White-label</li>
-                    </ul>
-                    <button class="w-full py-4 border border-slate-700 rounded-2xl font-bold hover:bg-slate-800">Contact Sales</button>
-                </div>
-            </div>
-        </section>
+        </div>
 
     </main>
 
-    <footer class="py-20 text-center border-t border-slate-900 mt-20 opacity-40 text-[10px] font-black tracking-[0.5em] uppercase">
-        JYA.io | The Vital Chord of Connectivity
+    <footer class="py-12 text-center border-t border-slate-900/50 opacity-40">
+        <div class="flex justify-center gap-6 mb-6 text-[9px] font-black uppercase tracking-widest">
+            <a href="#" class="hover:text-blue-500">Privacy Policy</a>
+            <a href="#" class="hover:text-blue-500">Terms of Service</a>
+        </div>
+        <p class="text-[10px] font-black tracking-[0.5em] uppercase">JYA.io | Vital Connectivity Chord</p>
     </footer>
 
     <script>
@@ -184,8 +196,8 @@
         }
 
         const trans = {
-            en: { hNode: "Global Node Monitor", hSolutions: "Industry Solutions", hPricing: "Scalable Plans" },
-            ar: { hNode: "مراقب العقد العالمي", hSolutions: "حلول القطاعات", hPricing: "خطط الأسعار" }
+            en: { hNode: "Global Node Monitor", hSolutions: "Industry Solutions", adTop: "Sponsored Ad", adSide: "Advertisement", adBottom: "Sponsored Content" },
+            ar: { hNode: "مراقب العقد العالمي", hSolutions: "حلول القطاعات", adTop: "إعلان ممول", adSide: "إعلان", adBottom: "محتوى مدعوم" }
         };
 
         function toggleLang() {
@@ -193,11 +205,16 @@
             document.body.classList.toggle('rtl', l === 'ar');
             document.getElementById('h-node').innerText = trans[l].hNode;
             document.getElementById('h-solutions').innerText = trans[l].hSolutions;
-            document.getElementById('h-pricing').innerText = trans[l].hPricing;
+            document.getElementById('ad-top-text').innerText = trans[l].adTop;
+            document.getElementById('ad-side-text').innerText = trans[l].adSide;
+            document.getElementById('ad-bottom-text').innerText = trans[l].adBottom;
         }
 
         syncData("Samawah");
         document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') syncData(e.target.value); });
+
+        // تفعيل الإعلانات برمجياً
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
