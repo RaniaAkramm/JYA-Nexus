@@ -8,177 +8,196 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
         
-        body { font-family: 'Inter', 'Noto Sans Arabic', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .gradient-text { background: linear-gradient(90deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        :root { --primary: #3b82f6; --secondary: #10b981; }
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; }
+        
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+        
+        .neon-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
         .rtl { direction: rtl; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body class="bg-[#020617] text-slate-100 overflow-x-hidden">
 
-    <!-- Navigation -->
-    <nav class="glass sticky top-0 z-50 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <i data-lucide="cpu" class="text-white"></i>
+    <!-- Background Decoration -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
+    <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-emerald-600/10 blur-[120px] rounded-full -z-10"></div>
+
+    <!-- Nav -->
+    <nav class="sticky top-0 z-50 border-b border-slate-800/50 bg-[#020617]/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center neon-glow">
+                    <i data-lucide="network" class="text-white w-6 h-6"></i>
                 </div>
-                <span class="text-xl font-bold tracking-tight">JYA <span class="text-blue-500">Nexus</span></span>
+                <span class="text-2xl font-extrabold tracking-tighter bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">JYA.io</span>
             </div>
 
-            <div class="flex items-center gap-4">
-                <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2 py-1 outline-none">
-                    <option value="en">English</option>
-                    <option value="ar">العربية</option>
-                    <option value="ku">کوردی</option>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex gap-6 text-sm font-medium text-slate-400">
+                    <a href="#dashboard" class="hover:text-blue-400 transition-colors">Dashboard</a>
+                    <a href="#ai" class="hover:text-blue-400 transition-colors">AI Engine</a>
+                </div>
+                <select id="langBtn" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-bold outline-none cursor-pointer">
+                    <option value="en">EN</option>
+                    <option value="ar">AR</option>
+                    <option value="ku">KU</option>
                 </select>
-                <button class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-                    Connect Device
+                <button class="bg-white text-black px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">
+                    Console
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Hero -->
-    <header class="py-16 px-4 text-center relative overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
-        <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold mb-4 gradient-text">The Chord of Life & Intelligence</h1>
-        <p id="heroSub" class="text-slate-400 max-w-2xl mx-auto text-lg">Connecting IoT sensors with predictive AI to create sustainable smart environments.</p>
+    <!-- Header Content -->
+    <header class="max-w-7xl mx-auto px-6 pt-20 pb-32">
+        <div class="flex flex-col lg:flex-row items-center gap-16">
+            <div class="flex-1 space-y-8">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    System Live: JYA Nexus v2.0
+                </div>
+                <h1 id="title" class="text-6xl md:text-8xl font-extrabold leading-[1.1] tracking-tight">
+                    Smart Data.<br><span class="text-blue-500">Pure Life.</span>
+                </h1>
+                <p id="desc" class="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed">
+                    The world's fastest AIoT interface for monitoring and predicting environmental health in real-time.
+                </p>
+                <div class="flex gap-4">
+                    <button class="px-8 py-4 bg-blue-600 rounded-2xl font-bold hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">Get Started</button>
+                    <button class="px-8 py-4 glass-card rounded-2xl font-bold hover:bg-slate-800 transition-all">Whitepaper</button>
+                </div>
+            </div>
+            
+            <!-- Quick Stats Visual -->
+            <div class="flex-1 w-full grid grid-cols-2 gap-4">
+                <div class="glass-card p-8 rounded-[2.5rem]">
+                    <i data-lucide="thermometer" class="text-orange-400 mb-4"></i>
+                    <div class="text-sm text-slate-500 mb-1">Temperature</div>
+                    <div class="text-3xl font-bold">24.5°</div>
+                </div>
+                <div class="glass-card p-8 rounded-[2.5rem]">
+                    <i data-lucide="droplets" class="text-blue-400 mb-4"></i>
+                    <div class="text-sm text-slate-500 mb-1">Humidity</div>
+                    <div class="text-3xl font-bold">48%</div>
+                </div>
+                <div class="glass-card p-8 rounded-[2.5rem] col-span-2 flex items-center justify-between">
+                    <div>
+                        <i data-lucide="brain-circuit" class="text-purple-400 mb-4"></i>
+                        <div class="text-sm text-slate-500 mb-1">AI Prediction Status</div>
+                        <div class="text-xl font-bold">Optimal Efficiency</div>
+                    </div>
+                    <div class="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30">
+                        <i data-lucide="shield-check" class="text-emerald-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Dashboard Grid -->
-    <main class="max-w-7xl mx-auto px-4 pb-20">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Card 1 -->
-            <div class="glass p-6 rounded-2xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span id="labelTemp" class="text-slate-400 text-sm">Temperature</span>
-                    <i data-lucide="thermometer" class="text-orange-400"></i>
+    <!-- Analytics Section -->
+    <section id="dashboard" class="max-w-7xl mx-auto px-6 py-20 border-t border-slate-900">
+        <div class="glass-card p-10 rounded-[3rem]">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div>
+                    <h2 id="chartTitle" class="text-3xl font-bold mb-2">Nexus Live Stream</h2>
+                    <p class="text-slate-500 text-sm italic">Encrypted data transmission active via Blockchain.</p>
                 </div>
-                <div class="text-3xl font-bold mb-1">24.8°C</div>
-                <div class="text-xs text-emerald-400 flex items-center gap-1">
-                    <i data-lucide="trending-down" size="12"></i> Optimal range
-                </div>
-            </div>
-            <!-- Card 2 -->
-            <div class="glass p-6 rounded-2xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span id="labelHum" class="text-slate-400 text-sm">Humidity</span>
-                    <i data-lucide="droplets" class="text-blue-400"></i>
-                </div>
-                <div class="text-3xl font-bold mb-1">52%</div>
-                <div class="text-xs text-emerald-400 flex items-center gap-1">
-                    <i data-lucide="check-circle" size="12"></i> Stable
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-slate-900 rounded-xl text-xs font-bold border border-slate-800">1H</button>
+                    <button class="px-4 py-2 bg-blue-600 rounded-xl text-xs font-bold">24H</button>
+                    <button class="px-4 py-2 bg-slate-900 rounded-xl text-xs font-bold border border-slate-800">7D</button>
                 </div>
             </div>
-            <!-- Card 3 -->
-            <div class="glass p-6 rounded-2xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span id="labelAir" class="text-slate-400 text-sm">Air Quality (CO2)</span>
-                    <i data-lucide="wind" class="text-emerald-400"></i>
-                </div>
-                <div class="text-3xl font-bold mb-1">405 ppm</div>
-                <div class="text-xs text-blue-400 flex items-center gap-1">
-                    <i data-lucide="info" size="12"></i> Fresh Air
-                </div>
+            <div class="h-[450px]">
+                <canvas id="iotChart"></canvas>
             </div>
         </div>
+    </section>
 
-        <!-- Charts & AI -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass p-6 rounded-2xl min-h-[400px]">
-                <h3 id="chartTitle" class="font-bold mb-6 flex items-center gap-2">
-                    <i data-lucide="activity" class="text-blue-500"></i> Live Sensor Stream
-                </h3>
-                <canvas id="liveChart"></canvas>
-            </div>
-            <div class="glass p-6 rounded-2xl">
-                <h3 id="aiTitle" class="font-bold mb-6 flex items-center gap-2">
-                    <i data-lucide="brain-circuit" class="text-purple-500"></i> JYA AI Insights
-                </h3>
-                <div class="space-y-4">
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                        <p class="text-sm text-slate-300 italic" id="aiPrediction">"AI Engine is analyzing patterns... Next 2 hours: Temperature expected to rise by 1.2°C."</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-blue-600/10 rounded-xl border border-blue-500/20">
-                            <span class="text-[10px] uppercase text-blue-400 font-bold">Efficiency Score</span>
-                            <div class="text-xl font-bold text-white">94%</div>
-                        </div>
-                        <div class="p-4 bg-emerald-600/10 rounded-xl border border-emerald-500/20">
-                            <span class="text-[10px] uppercase text-emerald-400 font-bold">Energy Saved</span>
-                            <div class="text-xl font-bold text-white">12.4 kWh</div>
-                        </div>
-                    </div>
-                    <button class="w-full py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">
-                        Generate Sustainability Report
-                    </button>
-                </div>
-            </div>
+    <footer class="py-20 text-center border-t border-slate-900 mt-20">
+        <div class="flex justify-center gap-8 mb-8 opacity-40">
+            <i data-lucide="apple"></i>
+            <i data-lucide="layers"></i>
+            <i data-lucide="cpu"></i>
+            <i data-lucide="database"></i>
         </div>
-    </main>
+        <p class="text-slate-500 text-sm">© 2024 JYA.io. The vital chord of connected intelligence.</p>
+    </footer>
 
     <script>
-        // Initialize Icons
         lucide.createIcons();
 
-        // Multi-language Logic
-        const content = {
+        const langData = {
             en: {
-                heroTitle: "The Chord of Life & Intelligence",
-                heroSub: "Connecting IoT sensors with predictive AI to create sustainable smart environments.",
-                labelTemp: "Temperature", labelHum: "Humidity", labelAir: "Air Quality (CO2)",
-                chartTitle: "Live Sensor Stream", aiTitle: "JYA AI Insights"
+                title: "Smart Data.<br><span class='text-blue-500'>Pure Life.</span>",
+                desc: "The world's fastest AIoT interface for monitoring and predicting environmental health in real-time.",
+                chartTitle: "Nexus Live Stream"
             },
             ar: {
-                heroTitle: "وتر الحياة والذكاء",
-                heroSub: "ربط مستشعرات إنترنت الأشياء بالذكاء الاصطناعي التنبئي لإنشاء بيئات ذكية مستدامة.",
-                labelTemp: "درجة الحرارة", labelHum: "الرطوبة", labelAir: "جودة الهواء",
-                chartTitle: "بث البيانات المباشر", aiTitle: "رؤى ذكاء جيا"
+                title: "بيانات ذكية.<br><span class='text-blue-500'>حياة نقيّة.</span>",
+                desc: "أسرع واجهة لإنترنت الأشياء والذكاء الاصطناعي لمراقبة وتوقع الصحة البيئية في الوقت الفعلي.",
+                chartTitle: "البث الحي لبيانات نكسس"
             },
             ku: {
-                heroTitle: "ژێی ژیان و ژیری",
-                heroSub: "پەیوەستکردنی هەستەوەرەکانی IoT لەگەڵ ژیری دەستکرد بۆ دروستکردنی ژینگەی زیرەکی بەردەوام.",
-                labelTemp: "پلەی گەرمی", labelHum: "شێداری", labelAir: "جۆری هەوا",
-                chartTitle: "پەخشی ڕاستەوخۆ", aiTitle: "تێڕوانینەکانی ژیری JYA"
+                title: "داتای زیرەک.<br><span class='text-blue-500'>ژیانی پاک.</span>",
+                desc: "خێراترین ناوبەستی AIoT لە جیهاندا بۆ چاودێریکردن و پێشبینیکردنی تەندروستی ژینگە.",
+                chartTitle: "پەخشی ڕاستەوخۆی نێکسس"
             }
         };
 
-        function changeLanguage() {
-            const l = document.getElementById('langSelect').value;
+        function toggleLang() {
+            const l = document.getElementById('langBtn').value;
             document.body.classList.toggle('rtl', l === 'ar' || l === 'ku');
-            document.getElementById('heroTitle').innerText = content[l].heroTitle;
-            document.getElementById('heroSub').innerText = content[l].heroSub;
-            document.getElementById('labelTemp').innerText = content[l].labelTemp;
-            document.getElementById('labelHum').innerText = content[l].labelHum;
-            document.getElementById('labelAir').innerText = content[l].labelAir;
-            document.getElementById('chartTitle').innerText = content[l].chartTitle;
-            document.getElementById('aiTitle').innerText = content[l].aiTitle;
+            document.getElementById('title').innerHTML = langData[l].title;
+            document.getElementById('desc').innerText = langData[l].desc;
+            document.getElementById('chartTitle').innerText = langData[l].chartTitle;
         }
 
-        // Chart Initialization
-        const ctx = document.getElementById('liveChart').getContext('2d');
-        const liveChart = new Chart(ctx, {
+        const ctx = document.getElementById('iotChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
                 datasets: [{
-                    label: 'Temp °C',
-                    data: [22, 23, 22.5, 24, 24.8, 24.2],
+                    label: 'Efficiency Index',
+                    data: [88, 92, 85, 95, 99, 94, 91],
                     borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 4,
                     fill: true,
-                    tension: 0.4
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#3b82f6'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { 
-                    y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
                     x: { grid: { display: false }, ticks: { color: '#64748b' } }
                 }
             }
