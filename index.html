@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JYA Nexus | AIoT Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;700&display=swap');
+        
+        body { font-family: 'Inter', 'Noto Sans Arabic', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .gradient-text { background: linear-gradient(90deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .rtl { direction: rtl; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="cpu" class="text-white"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">JYA <span class="text-blue-500">Nexus</span></span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2 py-1 outline-none">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="ku">کوردی</option>
+                </select>
+                <button class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    Connect Device
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="py-16 px-4 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
+        <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold mb-4 gradient-text">The Chord of Life & Intelligence</h1>
+        <p id="heroSub" class="text-slate-400 max-w-2xl mx-auto text-lg">Connecting IoT sensors with predictive AI to create sustainable smart environments.</p>
+    </header>
+
+    <!-- Dashboard Grid -->
+    <main class="max-w-7xl mx-auto px-4 pb-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Card 1 -->
+            <div class="glass p-6 rounded-2xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="labelTemp" class="text-slate-400 text-sm">Temperature</span>
+                    <i data-lucide="thermometer" class="text-orange-400"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">24.8°C</div>
+                <div class="text-xs text-emerald-400 flex items-center gap-1">
+                    <i data-lucide="trending-down" size="12"></i> Optimal range
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="glass p-6 rounded-2xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="labelHum" class="text-slate-400 text-sm">Humidity</span>
+                    <i data-lucide="droplets" class="text-blue-400"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">52%</div>
+                <div class="text-xs text-emerald-400 flex items-center gap-1">
+                    <i data-lucide="check-circle" size="12"></i> Stable
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="glass p-6 rounded-2xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="labelAir" class="text-slate-400 text-sm">Air Quality (CO2)</span>
+                    <i data-lucide="wind" class="text-emerald-400"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">405 ppm</div>
+                <div class="text-xs text-blue-400 flex items-center gap-1">
+                    <i data-lucide="info" size="12"></i> Fresh Air
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & AI -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass p-6 rounded-2xl min-h-[400px]">
+                <h3 id="chartTitle" class="font-bold mb-6 flex items-center gap-2">
+                    <i data-lucide="activity" class="text-blue-500"></i> Live Sensor Stream
+                </h3>
+                <canvas id="liveChart"></canvas>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <h3 id="aiTitle" class="font-bold mb-6 flex items-center gap-2">
+                    <i data-lucide="brain-circuit" class="text-purple-500"></i> JYA AI Insights
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <p class="text-sm text-slate-300 italic" id="aiPrediction">"AI Engine is analyzing patterns... Next 2 hours: Temperature expected to rise by 1.2°C."</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-blue-600/10 rounded-xl border border-blue-500/20">
+                            <span class="text-[10px] uppercase text-blue-400 font-bold">Efficiency Score</span>
+                            <div class="text-xl font-bold text-white">94%</div>
+                        </div>
+                        <div class="p-4 bg-emerald-600/10 rounded-xl border border-emerald-500/20">
+                            <span class="text-[10px] uppercase text-emerald-400 font-bold">Energy Saved</span>
+                            <div class="text-xl font-bold text-white">12.4 kWh</div>
+                        </div>
+                    </div>
+                    <button class="w-full py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">
+                        Generate Sustainability Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Multi-language Logic
+        const content = {
+            en: {
+                heroTitle: "The Chord of Life & Intelligence",
+                heroSub: "Connecting IoT sensors with predictive AI to create sustainable smart environments.",
+                labelTemp: "Temperature", labelHum: "Humidity", labelAir: "Air Quality (CO2)",
+                chartTitle: "Live Sensor Stream", aiTitle: "JYA AI Insights"
+            },
+            ar: {
+                heroTitle: "وتر الحياة والذكاء",
+                heroSub: "ربط مستشعرات إنترنت الأشياء بالذكاء الاصطناعي التنبئي لإنشاء بيئات ذكية مستدامة.",
+                labelTemp: "درجة الحرارة", labelHum: "الرطوبة", labelAir: "جودة الهواء",
+                chartTitle: "بث البيانات المباشر", aiTitle: "رؤى ذكاء جيا"
+            },
+            ku: {
+                heroTitle: "ژێی ژیان و ژیری",
+                heroSub: "پەیوەستکردنی هەستەوەرەکانی IoT لەگەڵ ژیری دەستکرد بۆ دروستکردنی ژینگەی زیرەکی بەردەوام.",
+                labelTemp: "پلەی گەرمی", labelHum: "شێداری", labelAir: "جۆری هەوا",
+                chartTitle: "پەخشی ڕاستەوخۆ", aiTitle: "تێڕوانینەکانی ژیری JYA"
+            }
+        };
+
+        function changeLanguage() {
+            const l = document.getElementById('langSelect').value;
+            document.body.classList.toggle('rtl', l === 'ar' || l === 'ku');
+            document.getElementById('heroTitle').innerText = content[l].heroTitle;
+            document.getElementById('heroSub').innerText = content[l].heroSub;
+            document.getElementById('labelTemp').innerText = content[l].labelTemp;
+            document.getElementById('labelHum').innerText = content[l].labelHum;
+            document.getElementById('labelAir').innerText = content[l].labelAir;
+            document.getElementById('chartTitle').innerText = content[l].chartTitle;
+            document.getElementById('aiTitle').innerText = content[l].aiTitle;
+        }
+
+        // Chart Initialization
+        const ctx = document.getElementById('liveChart').getContext('2d');
+        const liveChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+                datasets: [{
+                    label: 'Temp °C',
+                    data: [22, 23, 22.5, 24, 24.8, 24.2],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
