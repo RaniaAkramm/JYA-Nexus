@@ -3,193 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JYA Nexus | AIoT Hub</title>
+    <title>JYA Nexus | Pro AIoT Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        
-        :root { --primary: #3b82f6; --secondary: #10b981; }
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; }
-        
-        .glass-card { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
-        }
-        .glass-card:hover { border-color: var(--primary); transform: translateY(-4px); }
-        
-        .neon-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+        :root { --p: #3b82f6; --s: #10b981; }
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .rtl { direction: rtl; }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .animate-flicker { animation: flicker 2s infinite; }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body class="bg-[#020617] text-slate-100 overflow-x-hidden">
+<body class="bg-[#020617] text-slate-100 transition-all duration-500">
 
-    <!-- Background Decoration -->
-    <div class="fixed top-0 left-1/4 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
-    <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-emerald-600/10 blur-[120px] rounded-full -z-10"></div>
+    <div id="loginModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass p-8 rounded-3xl w-full max-w-md border-blue-500/30">
+            <h2 class="text-2xl font-bold mb-4">JYA Console Login</h2>
+            <input type="text" placeholder="Username" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-xl mb-3 outline-none focus:border-blue-500">
+            <input type="password" placeholder="Key Phrase" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-xl mb-6 outline-none focus:border-blue-500">
+            <button onclick="closeModal()" class="w-full py-3 bg-blue-600 rounded-xl font-bold">Access Nexus</button>
+        </div>
+    </div>
 
-    <!-- Nav -->
-    <nav class="sticky top-0 z-50 border-b border-slate-800/50 bg-[#020617]/80 backdrop-blur-md">
+    <nav class="sticky top-0 z-50 border-b border-slate-800/50 bg-[#020617]/90 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center neon-glow">
-                    <i data-lucide="network" class="text-white w-6 h-6"></i>
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/40">
+                    <i data-lucide="activity" class="text-white w-6 h-6"></i>
                 </div>
-                <span class="text-2xl font-extrabold tracking-tighter bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">JYA.io</span>
+                <span class="text-2xl font-black tracking-tighter">JYA.io</span>
             </div>
-
-            <div class="flex items-center gap-6">
-                <div class="hidden md:flex gap-6 text-sm font-medium text-slate-400">
-                    <a href="#dashboard" class="hover:text-blue-400 transition-colors">Dashboard</a>
-                    <a href="#ai" class="hover:text-blue-400 transition-colors">AI Engine</a>
-                </div>
-                <select id="langBtn" onchange="toggleLang()" class="bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-bold outline-none cursor-pointer">
-                    <option value="en">EN</option>
-                    <option value="ar">AR</option>
-                    <option value="ku">KU</option>
+            <div class="flex items-center gap-4">
+                <select id="langBtn" onchange="updateUI()" class="bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-bold outline-none cursor-pointer hover:border-blue-500 transition-all">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="ku">کوردی</option>
                 </select>
-                <button class="bg-white text-black px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">
-                    Console
-                </button>
+                <button onclick="openModal()" class="bg-white text-black px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">Console</button>
             </div>
         </div>
     </nav>
 
-    <!-- Header Content -->
-    <header class="max-w-7xl mx-auto px-6 pt-20 pb-32">
-        <div class="flex flex-col lg:flex-row items-center gap-16">
-            <div class="flex-1 space-y-8">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                    </span>
-                    System Live: JYA Nexus v2.0
-                </div>
-                <h1 id="title" class="text-6xl md:text-8xl font-extrabold leading-[1.1] tracking-tight">
-                    Smart Data.<br><span class="text-blue-500">Pure Life.</span>
-                </h1>
-                <p id="desc" class="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed">
-                    The world's fastest AIoT interface for monitoring and predicting environmental health in real-time.
-                </p>
-                <div class="flex gap-4">
-                    <button class="px-8 py-4 bg-blue-600 rounded-2xl font-bold hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">Get Started</button>
-                    <button class="px-8 py-4 glass-card rounded-2xl font-bold hover:bg-slate-800 transition-all">Whitepaper</button>
-                </div>
-            </div>
-            
-            <!-- Quick Stats Visual -->
-            <div class="flex-1 w-full grid grid-cols-2 gap-4">
-                <div class="glass-card p-8 rounded-[2.5rem]">
-                    <i data-lucide="thermometer" class="text-orange-400 mb-4"></i>
-                    <div class="text-sm text-slate-500 mb-1">Temperature</div>
-                    <div class="text-3xl font-bold">24.5°</div>
-                </div>
-                <div class="glass-card p-8 rounded-[2.5rem]">
-                    <i data-lucide="droplets" class="text-blue-400 mb-4"></i>
-                    <div class="text-sm text-slate-500 mb-1">Humidity</div>
-                    <div class="text-3xl font-bold">48%</div>
-                </div>
-                <div class="glass-card p-8 rounded-[2.5rem] col-span-2 flex items-center justify-between">
-                    <div>
-                        <i data-lucide="brain-circuit" class="text-purple-400 mb-4"></i>
-                        <div class="text-sm text-slate-500 mb-1">AI Prediction Status</div>
-                        <div class="text-xl font-bold">Optimal Efficiency</div>
-                    </div>
-                    <div class="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30">
-                        <i data-lucide="shield-check" class="text-emerald-400"></i>
-                    </div>
-                </div>
+    <main class="max-w-7xl mx-auto px-6 pt-16">
+        <div class="text-center mb-24">
+            <h1 id="h1" class="text-6xl md:text-8xl font-black mb-8 leading-tight bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">Connect Life.<br>Predict Future.</h1>
+            <p id="p1" class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">Advanced AIoT infrastructure for smart monitoring and predictive maintenance.</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#dashboard" class="px-10 py-4 bg-blue-600 rounded-2xl font-bold hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">Get Started</a>
+                <button onclick="alert('Whitepaper coming soon for JYA.io')" class="px-10 py-4 glass rounded-2xl font-bold hover:bg-slate-800 transition-all">Documentation</button>
             </div>
         </div>
-    </header>
 
-    <!-- Analytics Section -->
-    <section id="dashboard" class="max-w-7xl mx-auto px-6 py-20 border-t border-slate-900">
-        <div class="glass-card p-10 rounded-[3rem]">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-                <div>
-                    <h2 id="chartTitle" class="text-3xl font-bold mb-2">Nexus Live Stream</h2>
-                    <p class="text-slate-500 text-sm italic">Encrypted data transmission active via Blockchain.</p>
-                </div>
-                <div class="flex gap-2">
-                    <button class="px-4 py-2 bg-slate-900 rounded-xl text-xs font-bold border border-slate-800">1H</button>
-                    <button class="px-4 py-2 bg-blue-600 rounded-xl text-xs font-bold">24H</button>
-                    <button class="px-4 py-2 bg-slate-900 rounded-xl text-xs font-bold border border-slate-800">7D</button>
-                </div>
+        <section id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div class="glass p-8 rounded-[2.5rem] relative overflow-hidden group">
+                <i data-lucide="thermometer" class="text-orange-400 mb-6 group-hover:rotate-12 transition-transform"></i>
+                <div class="text-slate-500 text-xs mb-1 uppercase font-bold" id="l-temp">Temperature</div>
+                <div class="text-4xl font-black"><span id="val-temp">24.5</span><span class="text-lg text-slate-500 ml-1">°C</span></div>
+                <div class="absolute bottom-0 left-0 h-1 bg-orange-400 transition-all duration-1000" id="bar-temp" style="width: 24%"></div>
             </div>
-            <div class="h-[450px]">
+            <div class="glass p-8 rounded-[2.5rem] relative overflow-hidden group">
+                <i data-lucide="droplets" class="text-blue-400 mb-6 group-hover:rotate-12 transition-transform"></i>
+                <div class="text-slate-500 text-xs mb-1 uppercase font-bold" id="l-hum">Humidity</div>
+                <div class="text-4xl font-black"><span id="val-hum">52</span><span class="text-lg text-slate-500 ml-1">%</span></div>
+                <div class="absolute bottom-0 left-0 h-1 bg-blue-400 transition-all duration-1000" id="bar-hum" style="width: 52%"></div>
+            </div>
+            <div class="glass p-8 rounded-[2.5rem] relative overflow-hidden group">
+                <i data-lucide="wind" class="text-emerald-400 mb-6 group-hover:rotate-12 transition-transform"></i>
+                <div class="text-slate-500 text-xs mb-1 uppercase font-bold" id="l-co2">Air Quality</div>
+                <div class="text-4xl font-black"><span id="val-co2">410</span><span class="text-lg text-slate-500 ml-1">ppm</span></div>
+                <div class="absolute bottom-0 left-0 h-1 bg-emerald-400 transition-all duration-1000" id="bar-co2" style="width: 41%"></div>
+            </div>
+            <div class="glass p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-600/10 to-transparent border-blue-500/20">
+                <i data-lucide="brain-circuit" class="text-purple-400 mb-6 animate-pulse"></i>
+                <div class="text-slate-500 text-xs mb-1 uppercase font-bold" id="l-ai">AI Insights</div>
+                <div id="ai-status" class="text-sm font-bold text-blue-400">Analyzing patterns...</div>
+            </div>
+        </section>
+
+        <section class="glass p-10 rounded-[3rem] mb-20">
+            <div class="flex justify-between items-center mb-10">
+                <h2 id="h2" class="text-2xl font-black">Live Performance Stream</h2>
+                <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black rounded-full animate-flicker">LIVE DATA</div>
+            </div>
+            <div class="h-[400px]">
                 <canvas id="iotChart"></canvas>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <footer class="py-20 text-center border-t border-slate-900 mt-20">
-        <div class="flex justify-center gap-8 mb-8 opacity-40">
-            <i data-lucide="apple"></i>
-            <i data-lucide="layers"></i>
-            <i data-lucide="cpu"></i>
-            <i data-lucide="database"></i>
-        </div>
-        <p class="text-slate-500 text-sm">© 2024 JYA.io. The vital chord of connected intelligence.</p>
+    <footer class="py-12 border-t border-slate-900 text-center">
+        <p class="text-slate-600 text-sm">© 2024 JYA.io | Developed for Samawah, Iraq & Global Markets.</p>
     </footer>
 
     <script>
+        // Initialize Icons
         lucide.createIcons();
 
-        const langData = {
+        // Language Config
+        const translations = {
             en: {
-                title: "Smart Data.<br><span class='text-blue-500'>Pure Life.</span>",
-                desc: "The world's fastest AIoT interface for monitoring and predicting environmental health in real-time.",
-                chartTitle: "Nexus Live Stream"
+                h1: "Connect Life.<br>Predict Future.", p1: "Advanced AIoT infrastructure for smart monitoring and predictive maintenance.",
+                l_temp: "Internal Temperature", l_hum: "Humidity Level", l_co2: "Air Quality (CO2)", l_ai: "JYA AI Forecast",
+                h2: "Live Performance Stream"
             },
             ar: {
-                title: "بيانات ذكية.<br><span class='text-blue-500'>حياة نقيّة.</span>",
-                desc: "أسرع واجهة لإنترنت الأشياء والذكاء الاصطناعي لمراقبة وتوقع الصحة البيئية في الوقت الفعلي.",
-                chartTitle: "البث الحي لبيانات نكسس"
+                h1: "اربط الحياة.<br>توقع المستقبل.", p1: "بنية تحتية متطورة لإنترنت الأشياء والذكاء الاصطناعي للمراقبة الذكية والصيانة التنبؤية.",
+                l_temp: "درجة الحرارة الداخلية", l_hum: "مستوى الرطوبة", l_co2: "جودة الهواء (CO2)", l_ai: "توقعات ذكاء جيا",
+                h2: "بث الأداء المباشر"
             },
             ku: {
-                title: "داتای زیرەک.<br><span class='text-blue-500'>ژیانی پاک.</span>",
-                desc: "خێراترین ناوبەستی AIoT لە جیهاندا بۆ چاودێریکردن و پێشبینیکردنی تەندروستی ژینگە.",
-                chartTitle: "پەخشی ڕاستەوخۆی نێکسس"
+                h1: "ژیان پەیوەست بکە.<br>داهاتوو پێشبینی بکە.", p1: "بنیاتنانی ژێرخانی AIoT بۆ چاودێری زیرەک و پاراستنی پێشبینیکراو.",
+                l_temp: "پلەی گەرمی ناوخۆیی", l_hum: "ئاستی شێداری", l_co2: "کوالیتی هەوا (CO2)", l_ai: "پێشبینی ژیری JYA",
+                h2: "پەخشی ڕاستەوخۆی ئەنجامەکان"
             }
         };
 
-        function toggleLang() {
+        function updateUI() {
             const l = document.getElementById('langBtn').value;
             document.body.classList.toggle('rtl', l === 'ar' || l === 'ku');
-            document.getElementById('title').innerHTML = langData[l].title;
-            document.getElementById('desc').innerText = langData[l].desc;
-            document.getElementById('chartTitle').innerText = langData[l].chartTitle;
+            document.getElementById('h1').innerHTML = translations[l].h1;
+            document.getElementById('p1').innerText = translations[l].p1;
+            document.getElementById('l-temp').innerText = translations[l].l_temp;
+            document.getElementById('l-hum').innerText = translations[l].l_hum;
+            document.getElementById('l-co2').innerText = translations[l].l_co2;
+            document.getElementById('l-ai').innerText = translations[l].l_ai;
+            document.getElementById('h2').innerText = translations[l].h2;
         }
 
-        const ctx = document.getElementById('iotChart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        // Modal Logic
+        function openModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
 
-        new Chart(ctx, {
+        // Live Simulation Logic
+        function updateSensors() {
+            const temp = (22 + Math.random() * 5).toFixed(1);
+            const hum = Math.floor(45 + Math.random() * 15);
+            const co2 = Math.floor(390 + Math.random() * 40);
+
+            document.getElementById('val-temp').innerText = temp;
+            document.getElementById('val-hum').innerText = hum;
+            document.getElementById('val-co2').innerText = co2;
+
+            document.getElementById('bar-temp').style.width = (temp * 2) + '%';
+            document.getElementById('bar-hum').style.width = hum + '%';
+            document.getElementById('bar-co2').style.width = (co2 / 10) + '%';
+
+            // AI Insight Logic
+            const status = document.getElementById('ai-status');
+            if(temp > 25) {
+                status.innerText = "Warning: Heat rising. Cooling suggested.";
+                status.className = "text-sm font-bold text-orange-400";
+            } else {
+                status.innerText = "System Healthy. Optimal efficiency.";
+                status.className = "text-sm font-bold text-emerald-400";
+            }
+        }
+
+        setInterval(updateSensors, 3000);
+
+        // Chart.js Setup
+        const ctx = document.getElementById('iotChart').getContext('2d');
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
                 datasets: [{
-                    label: 'Efficiency Index',
-                    data: [88, 92, 85, 95, 99, 94, 91],
+                    label: 'Efficiency',
+                    data: [85, 88, 82, 94, 98, 91, 89],
                     borderColor: '#3b82f6',
-                    borderWidth: 4,
+                    borderWidth: 3,
                     fill: true,
-                    backgroundColor: gradient,
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
                     tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#3b82f6'
+                    pointRadius: 0
                 }]
             },
             options: {
