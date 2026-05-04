@@ -1,11 +1,11 @@
-// JYA Nexus Global Backend - Vercel Serverless Function
+// JYA Nexus Backend Proxy for Vercel
 export default async function handler(req, res) {
+    // جلب المفتاح السري من خزنة Vercel
     const apiKey = process.env.WEATHER_API_KEY; 
-    // الآن نستقبل اسم المدينة من المتصفح، وإذا لم توجد نستخدم 'London' كافتراضي عالمي
-    const city = req.query.city || "London";
+    const city = req.query.city || "Samawah";
 
     if (!apiKey) {
-        return res.status(500).json({ error: "API Key missing in Vercel settings" });
+        return res.status(500).json({ error: "Missing API Key in Vercel. Please add WEATHER_API_KEY to Environment Variables." });
     }
 
     try {
@@ -19,6 +19,6 @@ export default async function handler(req, res) {
 
         res.status(200).json(data);
     } catch (error) {
-        res.status(500).json({ error: "Connection to global nodes failed" });
+        res.status(500).json({ error: "Internal Server Error: Could not connect to data nodes." });
     }
 }
