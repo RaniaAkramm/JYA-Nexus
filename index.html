@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JYA Nexus | Global Intelligence Platform</title>
+    <title>JYA Nexus | Global Weather Intelligence</title>
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-63627b819695032bb8f19182b6f25bdf" crossorigin="anonymous"></script>
+    <!-- Google AdSense - Site Verification & Ads -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4916389984524641" crossorigin="anonymous"></script>
 
     <!-- UI Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +18,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
         
         body { 
-            font-family: 'Plus Jakarta Sans', 'Noto+Sans+Arabic', sans-serif; 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; 
             transition: background 0.5s ease, color 0.5s ease; 
             overflow-x: hidden; 
         }
@@ -32,9 +32,8 @@
         .dark-mode { background: #010409; color: white; }
         .light-mode { background: #f8fafc; color: #0f172a; }
 
-        #map { height: 350px; border-radius: 2rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); }
+        #map { height: 380px; border-radius: 2.5rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); }
         
-        /* Autocomplete List Styling */
         #suggestions { 
             display: none; 
             position: absolute; 
@@ -42,14 +41,16 @@
             left: 0; 
             right: 0; 
             z-index: 200; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
         }
+        
         .suggestion-item { 
             padding: 14px 20px; 
             cursor: pointer; 
             border-bottom: 1px solid rgba(255,255,255,0.05); 
             font-size: 14px;
             font-weight: 600;
+            transition: all 0.2s;
         }
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
@@ -60,14 +61,13 @@
             text-transform: uppercase; 
             letter-spacing: 0.2em; 
             opacity: 0.3; 
-            margin-bottom: 4px; 
+            margin-bottom: 6px; 
         }
 
-        /* Directional Adjustments */
-        [dir="rtl"] .search-icon { right: 1rem; left: auto; }
-        [dir="ltr"] .search-icon { left: 1rem; right: auto; }
-        [dir="rtl"] .search-input { padding-right: 3rem; padding-left: 1rem; }
-        [dir="ltr"] .search-input { padding-left: 3rem; padding-right: 1rem; }
+        [dir="rtl"] .search-icon { right: 1.25rem; left: auto; }
+        [dir="ltr"] .search-icon { left: 1.25rem; right: auto; }
+        [dir="rtl"] .search-input { padding-right: 3.5rem; padding-left: 1rem; }
+        [dir="ltr"] .search-input { padding-left: 3.5rem; padding-right: 1rem; }
     </style>
 </head>
 <body class="dark-mode" id="app-body">
@@ -75,23 +75,22 @@
     <!-- Navbar -->
     <nav class="sticky top-0 z-[100] h-20 px-6 glass flex items-center justify-between border-b border-white/5">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 transition-transform hover:scale-110">
-                <i data-lucide="zap" class="text-white fill-current"></i>
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transition-transform hover:rotate-12">
+                <i data-lucide="zap" class="text-white fill-current" size="20"></i>
             </div>
             <span class="text-2xl font-black tracking-tighter hidden sm:block">JYA<span class="text-blue-500">.io</span></span>
         </div>
 
-        <!-- Smart Search & Autocomplete -->
         <div class="flex-1 max-w-xl mx-4 sm:mx-10 relative group">
             <i data-lucide="search" class="search-icon absolute top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-blue-500" size="18"></i>
             <input type="text" id="citySearch" autocomplete="off" placeholder="Search any city..." 
-                class="search-input w-full bg-slate-900/40 border border-white/10 py-3 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-inner">
-            <div id="suggestions" class="glass rounded-2xl mt-2 overflow-hidden"></div>
+                class="search-input w-full bg-slate-900/50 border border-white/10 py-3 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold">
+            <div id="suggestions" class="glass rounded-2xl mt-2 overflow-hidden backdrop-blur-2xl"></div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button onclick="getGPS()" class="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500 group" title="My Location">
-                <i data-lucide="navigation" class="group-active:scale-90 transition-transform"></i>
+        <div class="flex items-center gap-2">
+            <button onclick="getGPS()" class="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500 group" title="Locate Me">
+                <i data-lucide="navigation" size="20" class="group-active:scale-90 transition-transform"></i>
             </button>
             <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer border border-white/10 rounded-lg px-2 py-1.5 hover:border-blue-500 transition-all">
                 <option value="en">English</option>
@@ -100,169 +99,169 @@
                 <option value="es">Español</option>
             </select>
             <button onclick="toggleTheme()" class="p-2.5 rounded-xl hover:bg-yellow-500/10 transition-all text-yellow-400" id="themeBtn">
-                <i data-lucide="sun"></i>
+                <i data-lucide="sun" size="20"></i>
             </button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
         
-        <!-- Ad 1: Top Responsive Banner -->
+        <!-- AD 1: TOP BANNER (SMALL) -->
         <div class="mb-10 flex flex-col items-center">
-            <span class="ad-tag" id="ad-label-1">SPONSORED AD</span>
+            <span class="ad-tag" id="ad-label-1">SPONSORED NODE</span>
             <div class="w-full max-w-[728px] h-20 sm:h-[90px] bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
-                <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf" data-ad-slot="1234567890"></ins>
+                <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1234567890"></ins>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Left Column: Main Dashboard -->
+            <!-- Left Side: Weather Info -->
             <div class="lg:col-span-8 space-y-8">
                 
-                <!-- Main Intelligence Card -->
-                <section class="glass p-8 sm:p-12 rounded-[3rem] relative overflow-hidden group border border-white/10 shadow-2xl shadow-blue-900/10">
+                <section class="glass p-8 sm:p-12 rounded-[3.5rem] relative overflow-hidden group border border-white/10 shadow-2xl">
                     <div class="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 blur-[120px] -z-10"></div>
                     
                     <div class="flex flex-col md:flex-row justify-between gap-10">
                         <div class="space-y-6">
                             <div class="flex items-center gap-2 text-blue-500 font-black text-xs uppercase tracking-[0.2em]">
-                                <i data-lucide="map-pin" size="14"></i> <span id="cityName">SYNCING NODE...</span>
+                                <i data-lucide="map-pin" size="14"></i> <span id="cityName">ESTABLISHING CONNECTION...</span>
                             </div>
                             <h2 class="text-8xl md:text-9xl font-black tracking-tighter" id="v-temp">--°</h2>
                             <p class="text-xl font-bold opacity-60 flex items-center gap-3" id="v-desc">
-                                INITIALIZING DATA STREAM...
+                                STREAMING DATA...
                             </p>
+                            <div class="flex items-center gap-4 text-xs font-bold opacity-30 uppercase tracking-widest" id="v-time-info">
+                                <span id="v-current-time">--:--</span>
+                                <span id="v-current-date">---, -- ---</span>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center p-6 bg-blue-500/5 rounded-[3rem] border border-blue-500/10 shadow-inner" id="w-icon">
+                        <div class="flex flex-col items-center justify-center p-8 bg-blue-500/5 rounded-[3.5rem] border border-blue-500/10" id="w-icon">
                             <i data-lucide="cloud-sun" size="100" class="text-blue-500 animate-pulse"></i>
                         </div>
                     </div>
 
-                    <!-- JYA AI Insight Analysis -->
-                    <div class="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-4 items-start shadow-lg">
+                    <!-- AI INSIGHT BOX -->
+                    <div class="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-5 items-start shadow-xl transition-all hover:bg-blue-600/20">
                         <div class="p-3.5 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/40">
-                            <i data-lucide="brain-circuit"></i>
+                            <i data-lucide="brain-circuit" size="24"></i>
                         </div>
                         <div>
                             <h4 class="text-[10px] font-black uppercase text-blue-500 mb-1 tracking-widest" id="h-ai-title">AI ANALYSIS</h4>
-                            <p class="text-sm font-bold italic opacity-80 leading-relaxed" id="v-ai">"The system is analyzing atmospheric patterns..."</p>
+                            <p class="text-sm font-bold italic opacity-80 leading-relaxed" id="v-ai">"JYA AI is scanning atmospheric nodes for data..."</p>
                         </div>
                     </div>
                 </section>
 
-                <!-- Professional Stats Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500 hover:scale-105 transition-transform cursor-default">
-                        <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500 group hover:bg-blue-500/10 transition-colors">
+                        <i data-lucide="droplets" class="text-blue-500 mb-4 group-hover:scale-110 transition-transform"></i>
                         <div class="text-[10px] font-black opacity-30 uppercase mb-1" id="h-hum">HUMIDITY</div>
                         <div class="text-3xl font-black" id="v-hum">--%</div>
                     </div>
-                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500 hover:scale-105 transition-transform cursor-default">
-                        <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500 group hover:bg-emerald-500/10 transition-colors">
+                        <i data-lucide="wind" class="text-emerald-500 mb-4 group-hover:scale-110 transition-transform"></i>
                         <div class="text-[10px] font-black opacity-30 uppercase mb-1" id="h-wind">WIND</div>
                         <div class="text-3xl font-black" id="v-wind">--</div>
                     </div>
-                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500 hover:scale-105 transition-transform cursor-default">
-                        <i data-lucide="sun-medium" class="text-orange-500 mb-4"></i>
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500 group hover:bg-orange-500/10 transition-colors">
+                        <i data-lucide="sun-medium" class="text-orange-500 mb-4 group-hover:scale-110 transition-transform"></i>
                         <div class="text-[10px] font-black opacity-30 uppercase mb-1">UV INDEX</div>
                         <div class="text-3xl font-black" id="v-uv">HIGH (8)</div>
                     </div>
                 </div>
 
-                <!-- Map Visualization -->
-                <div id="map" class="shadow-2xl shadow-black/40"></div>
+                <div id="map" class="shadow-2xl"></div>
             </div>
 
-            <!-- Sidebar Column -->
+            <!-- Right Side: Sidebar & Ads -->
             <aside class="lg:col-span-4 space-y-8">
                 
-                <!-- Ad 2: Sidebar Rectangle -->
+                <!-- AD 2: SIDEBAR (RECTANGLE) -->
                 <div class="p-6 rounded-[3rem] bg-white/5 border border-white/5 flex flex-col items-center shadow-lg">
                     <span class="ad-tag" id="ad-label-2">SPONSORED NODE</span>
                     <div class="w-[250px] h-[250px] border border-dashed border-white/10 rounded-[2rem] flex items-center justify-center overflow-hidden bg-slate-900/50">
-                        <ins class="adsbygoogle" style="display:block;width:250px;height:250px" data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf" data-ad-slot="0987654321"></ins>
+                        <ins class="adsbygoogle" style="display:block;width:250px;height:250px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="0987654321"></ins>
                     </div>
                 </div>
 
-                <!-- Smart Advice Logic -->
-                <div class="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-2xl shadow-blue-600/30 relative overflow-hidden group">
-                    <i data-lucide="sun" class="absolute -top-4 -right-4 w-32 h-32 text-white/10 rotate-12 transition-transform group-hover:rotate-45"></i>
-                    <i data-lucide="info" class="mb-4 text-blue-200" size={24}></i>
-                    <h4 class="text-xl font-black mb-3 uppercase tracking-tighter" id="h-tip-title">DAILY TIP</h4>
+                <div class="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-900 text-white shadow-2xl relative overflow-hidden group">
+                    <i data-lucide="info" class="mb-4 text-blue-200" size="24"></i>
+                    <h4 class="text-xl font-black mb-3 uppercase tracking-tighter" id="h-tip-title">DAILY ADVICE</h4>
                     <p class="text-sm font-medium opacity-90 leading-relaxed italic" id="v-tip">
-                        Connecting to local nodes for environmental advice...
+                        Waiting for climate analysis...
                     </p>
                 </div>
 
-                <!-- Footer Ad Tag -->
-                <div class="text-center opacity-10 py-4">
-                    <p class="text-[8px] font-black tracking-[0.8em] uppercase">Global IoT Connectivity</p>
+                <!-- Stats Footer -->
+                <div class="p-8 rounded-[3rem] border border-white/5 flex flex-col gap-4">
+                    <h5 class="text-[10px] font-black uppercase opacity-20 tracking-widest">Visibility & Pressure</h5>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold" id="h-vis">Visibility</span>
+                        <span class="text-lg font-black" id="v-vis">-- km</span>
+                    </div>
+                    <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-3/4"></div>
+                    </div>
                 </div>
             </aside>
         </div>
 
-        <!-- Ad 3: Horizontal Bottom Leaderboard -->
+        <!-- AD 3: BOTTOM BANNER (AUTO) -->
         <div class="mt-20 py-12 border-t border-white/5 flex flex-col items-center">
             <span class="ad-tag" id="ad-label-3">SPONSORED CONTENT</span>
             <div class="w-full max-w-4xl h-24 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-63627b819695032bb8f19182b6f25bdf" data-ad-slot="1122334455" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1122334455" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
         </div>
     </main>
 
     <footer class="py-12 border-t border-white/5 text-center opacity-40">
-        <div class="flex justify-center gap-8 mb-6 text-[9px] font-black uppercase tracking-widest text-slate-500">
-            <a href="#" class="hover:text-blue-500 transition-colors">Privacy</a>
-            <a href="#" class="hover:text-blue-500 transition-colors">Terms</a>
-            <a href="#" class="hover:text-blue-500 transition-colors">Status</a>
+        <p class="text-[10px] font-black tracking-[1.2em] uppercase text-blue-600 mb-6">JYA.io</p>
+        <div class="flex justify-center gap-8 text-[9px] font-black uppercase tracking-widest text-slate-500">
+            <a href="#" class="hover:text-blue-500">Privacy</a>
+            <a href="#" class="hover:text-blue-500">Terms</a>
+            <a href="#" class="hover:text-blue-500">Node Status</a>
         </div>
-        <p class="text-[10px] font-black tracking-[1.5em] uppercase text-blue-600">JYA.io</p>
     </footer>
 
     <script>
         lucide.createIcons();
 
-        // Dictionary & Internationalization
         const translations = {
-            en: { search: "Search any city...", hum: "HUMIDITY", wind: "WIND SPEED", aiTitle: "AI INSIGHT ANALYSIS", tipTitle: "DAILY ADVICE", uv: "HIGH (8)", ad: "SPONSORED", unit: "km/h", dir: "ltr" },
-            ar: { search: "ابحث عن مدينة...", hum: "الرطوبة", wind: "سرعة الرياح", aiTitle: "تحليل الذكاء الاصطناعي", tipTitle: "نصيحة اليوم", uv: "مرتفع (8)", ad: "إعلان مدعوم", unit: "كم/س", dir: "rtl" },
-            fr: { search: "Chercher une ville...", hum: "HUMIDITÉ", wind: "VITESSE VENT", aiTitle: "ANALYSE IA JYA", tipTitle: "CONSEIL DU JOUR", uv: "ÉLEVÉ (8)", ad: "PUBLICITÉ", unit: "km/h", dir: "ltr" },
-            es: { search: "Buscar ciudad...", hum: "HUMEDAD", wind: "VIENTO", aiTitle: "ANÁLISIS IA JYA", tipTitle: "CONSEJO DEL DÍA", uv: "ALTO (8)", ad: "PUBLICIDAD", unit: "km/h", dir: "ltr" }
+            en: { search: "Search any city...", hum: "HUMIDITY", wind: "WIND SPEED", aiTitle: "JYA AI INSIGHT", tipTitle: "DAILY ADVICE", vis: "VISIBILITY", ad: "SPONSORED", unit: "km/h", dir: "ltr" },
+            ar: { search: "ابحث عن مدينة...", hum: "الرطوبة", wind: "سرعة الرياح", aiTitle: "تحليل الذكاء الاصطناعي", tipTitle: "نصيحة اليوم", vis: "الرؤية", ad: "إعلان مدعوم", unit: "كم/س", dir: "rtl" },
+            fr: { search: "Chercher une ville...", hum: "HUMIDITÉ", wind: "VENT", aiTitle: "ANALYSE IA JYA", tipTitle: "CONSEIL DU JOUR", vis: "VISIBILITÉ", ad: "PUBLICITÉ", unit: "km/h", dir: "ltr" },
+            es: { search: "Buscar ciudad...", hum: "HUMEDAD", wind: "VIENTO", aiTitle: "ANÁLISIS IA JYA", tipTitle: "CONSEJO DEL DÍA", vis: "VISIBILIDAD", ad: "PUBLICIDAD", unit: "km/h", dir: "ltr" }
         };
 
-        let currentLang = 'en'; // English is Basic/Default
+        let currentLang = 'en'; // Default Language
 
         function changeLanguage(lang) {
             currentLang = lang;
             const t = translations[lang];
             document.documentElement.lang = lang;
             document.documentElement.dir = t.dir;
-            
-            // Adjust App direction
             const body = document.getElementById('app-body');
             body.className = (body.classList.contains('dark-mode') ? 'dark-mode ' : 'light-mode ') + t.dir;
             
-            // Update UI Texts
             document.getElementById('citySearch').placeholder = t.search;
             document.getElementById('h-ai-title').innerText = t.aiTitle;
             document.getElementById('h-hum').innerText = t.hum;
             document.getElementById('h-wind').innerText = t.wind;
-            document.getElementById('v-uv').innerText = t.uv;
+            document.getElementById('h-vis').innerText = t.vis;
             document.getElementById('h-tip-title').innerText = t.tipTitle;
             document.getElementById('ad-label-1').innerText = t.ad;
             document.getElementById('ad-label-2').innerText = t.ad;
             document.getElementById('ad-label-3').innerText = t.ad;
 
-            syncData(); // Re-fetch with new language
+            syncData();
         }
 
-        // Map Logic
         const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         let marker;
 
-        // API Real Sync (Uses your existing backend)
         async function syncData(city = null, lat = null, lon = null) {
             try {
                 let url = (lat && lon) 
@@ -272,34 +271,38 @@
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data.main) updateUI(data);
-            } catch (e) { console.error("API Link Failed"); }
+            } catch (e) { console.error("API Link Error"); }
         }
 
         function updateUI(data) {
+            const now = new Date();
             document.getElementById('cityName').innerText = `${data.name.toUpperCase()}, ${data.sys.country}`;
             document.getElementById('v-temp').innerText = Math.round(data.main.temp) + "°";
             document.getElementById('v-desc').innerText = data.weather[0].description.toUpperCase();
             document.getElementById('v-hum').innerText = data.main.humidity + "%";
             document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6) + " " + translations[currentLang].unit;
+            document.getElementById('v-vis').innerText = (data.visibility / 1000).toFixed(1) + " km";
             
-            // Smart AI Analysis Logic
+            document.getElementById('v-current-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('v-current-date').innerText = now.toLocaleDateString(currentLang, {weekday: 'short', day: 'numeric', month: 'short'});
+
+            // AI Insight Engine
             const temp = data.main.temp;
             if (currentLang === 'en') {
-                document.getElementById('v-ai').innerText = temp > 30 ? `Intense heat detected (${Math.round(temp)}°C). High humidity is increasing the thermal index. Hydration is critical.` : `Environmental conditions are optimal. Low wind resistance at ${data.wind.speed}m/s.`;
-                document.getElementById('v-tip').innerText = temp > 30 ? "Wear lightweight fabrics and prioritize hydration today." : "Perfect day for energy harvesting and outdoor tasks!";
+                document.getElementById('v-ai').innerText = temp > 30 ? `Intense thermal activity (${Math.round(temp)}°C). High humidity is increasing the heat index. Stay hydrated.` : `Optimal conditions detected. Airflow resistance is low at ${data.wind.speed} m/s.`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "Drink water every hour and wear light fabrics." : "Great day for outdoor tasks and data gathering!";
             } else if (currentLang === 'ar') {
-                document.getElementById('v-ai').innerText = temp > 30 ? `حرارة شديدة (${Math.round(temp)}°م). الرطوبة العالية تزيد من الشعور بالضيق الحراري.` : `الأجواء مثالية. سرعة الرياح منخفضة (${data.wind.speed} م/ث).`;
-                document.getElementById('v-tip').innerText = temp > 30 ? "اشرب الكثير من الماء وارتدِ ملابس قطنية خفيفة اليوم." : "يوم رائع للنشاطات الخارجية، استمتع بالطقس!";
+                document.getElementById('v-ai').innerText = temp > 30 ? `نشاط حراري مرتفع (${Math.round(temp)}°م). الرطوبة العالية تزيد الشعور بالحرارة.` : `ظروف جوية مثالية. مقاومة الهواء منخفضة (${data.wind.speed} م/ث).`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "اشرب الماء بانتظام وارتدِ ملابس قطنية اليوم." : "يوم رائع للنشاطات الخارجية، استمتع بالطقس!";
             } else {
-                document.getElementById('v-ai').innerText = `Current temp: ${Math.round(temp)}°C. Humidity: ${data.main.humidity}%. Conditions: ${data.weather[0].description}.`;
-                document.getElementById('v-tip').innerText = "Stay healthy and monitor environmental changes.";
+                document.getElementById('v-ai').innerText = `Current state: ${Math.round(temp)}°C. Humidity: ${data.main.humidity}%. Result: ${data.weather[0].description}.`;
+                document.getElementById('v-tip').innerText = "Monitor local conditions for optimal productivity.";
             }
 
-            // Map Interaction
             const { lat, lon } = data.coord;
             map.flyTo([lat, lon], 10);
             if(marker) map.removeLayer(marker);
-            marker = L.circleMarker([lat, lon], { color: '#3b82f6', weight: 3, opacity: 0.8, fillOpacity: 0.4, radius: 12 }).addTo(map);
+            marker = L.circleMarker([lat, lon], { color: '#3b82f6', weight: 4, radius: 12, fillOpacity: 0.3 }).addTo(map);
         }
 
         function getGPS() {
@@ -315,7 +318,7 @@
             lucide.createIcons();
         }
 
-        // Smart Autocomplete using GeoAPI
+        // Smart Autocomplete
         document.getElementById('citySearch').addEventListener('input', async (e) => {
             const val = e.target.value;
             const suggestions = document.getElementById('suggestions');
@@ -340,18 +343,14 @@
             } catch(e) {}
         });
 
-        // Close suggestions on blur
         document.addEventListener('click', (e) => {
             if (!document.getElementById('citySearch').contains(e.target)) {
                 document.getElementById('suggestions').style.display = 'none';
             }
         });
 
-        // Initialize App
         syncData();
         document.getElementById('citySearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') syncData(); });
-        
-        // Push Ads
         try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
     </script>
 </body>
