@@ -5,253 +5,272 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JYA Nexus | Global Intelligence</title>
 
-    <!-- Google AdSense - ربط الحساب وإثبات الملكية -->
+    <!-- Google AdSense - Verified ID -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4916389984524641" crossorigin="anonymous"></script>
 
-    <!-- المكتبات اللازمة للتشغيل الفوري -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Standard UI Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- الخرائط -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; transition: all 0.5s ease; }
-        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; transition: background 0.4s; overflow-x: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
         .dark-mode { background: #010409; color: white; }
         .light-mode { background: #f8fafc; color: #0f172a; }
-        #map { height: 380px; border-radius: 2.5rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); }
-        .suggestion-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 600; }
-        .suggestion-item:hover { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        #map { height: 350px; border-radius: 2rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); margin-top: 1rem; }
+        
+        #suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 200; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .suggestion-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .suggestion-item:hover { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        
+        .ad-label { font-size: 8px; font-weight: 900; opacity: 0.2; letter-spacing: 0.2em; text-align: center; display: block; margin-bottom: 4px; }
         .rtl { direction: rtl; }
         .ltr { direction: ltr; }
-        .ad-tag { font-size: 8px; font-weight: 900; opacity: 0.2; letter-spacing: 0.2em; margin-bottom: 4px; display: block; text-align: center; text-transform: uppercase; }
     </style>
 </head>
 <body class="dark-mode ltr" id="app-body">
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        const { 
-            Sun, Moon, Search, Navigation, MapPin, Wind, Droplets, Eye, 
-            Thermometer, SunMedium, CloudRain, Clock, Calendar, 
-            BrainCircuit, Zap, Navigation2, Info, ChevronRight, Languages
-        } = lucide;
+    <!-- Header -->
+    <nav class="sticky top-0 z-[100] h-20 px-6 glass flex items-center justify-between border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <i data-lucide="zap" class="text-white fill-current"></i>
+            </div>
+            <span class="text-2xl font-black tracking-tighter hidden sm:block uppercase">JYA<span class="text-blue-500">.io</span></span>
+        </div>
 
-        function App() {
-            const [weather, setWeather] = useState(null);
-            const [forecast, setForecast] = useState([]);
-            const [city, setCity] = useState('Samawah');
-            const [lang, setLang] = useState('en'); // الإنجليزية هي الأساسية
-            const [isDark, setIsDark] = useState(true);
-            const [suggestions, setSuggestions] = useState([]);
-            const [time, setTime] = useState(new Date());
+        <div class="flex-1 max-w-xl mx-4 sm:mx-10 relative">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size="18"></i>
+            <input type="text" id="citySearch" autocomplete="off" placeholder="Search any city..." 
+                class="w-full bg-slate-900 border border-white/5 py-3 pl-12 pr-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold">
+            <div id="suggestions" class="glass rounded-2xl mt-2 overflow-hidden"></div>
+        </div>
 
-            const mapRef = useRef(null);
-            const markerRef = useRef(null);
+        <div class="flex items-center gap-2">
+            <button onclick="getGPS()" class="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500" title="GPS">
+                <i data-lucide="navigation"></i>
+            </button>
+            <select id="langSelect" onchange="changeLang(this.value)" class="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer border border-white/10 rounded-lg px-2 py-1">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+            </select>
+            <button onclick="toggleTheme()" class="p-2.5 rounded-xl transition-all text-yellow-400" id="themeBtn">
+                <i data-lucide="sun"></i>
+            </button>
+        </div>
+    </nav>
 
-            useEffect(() => {
-                const timer = setInterval(() => setTime(new Date()), 1000);
-                if (!mapRef.current) {
-                    mapRef.current = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(mapRef.current);
-                }
-                syncData();
-                return () => clearInterval(timer);
-            }, [lang]);
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        
+        <!-- AD 1: TOP -->
+        <div class="mb-10 flex flex-col items-center">
+            <span class="ad-label" id="ad-text-1">SPONSORED AD</span>
+            <div class="w-full max-w-[728px] h-20 sm:h-[90px] bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
+                <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1234567890"></ins>
+            </div>
+        </div>
 
-            const syncData = async (cityName = null, lat = null, lon = null) => {
-                try {
-                    // الاتصال بـ API الخاص بك في Vercel
-                    let url = (lat && lon) 
-                        ? `/api/weather?lat=${lat}&lon=${lon}&lang=${lang}` 
-                        : `/api/weather?city=${encodeURIComponent(cityName || city)}&lang=${lang}`;
-
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    
-                    if (data.main) {
-                        setWeather(data);
-                        setCity(data.name);
-                        
-                        const coords = [data.coord.lat, data.coord.lon];
-                        mapRef.current.flyTo(coords, 10);
-                        if (markerRef.current) mapRef.current.removeLayer(markerRef.current);
-                        markerRef.current = L.circleMarker(coords, { color: '#3b82f6', radius: 10, weight: 3 }).addTo(mapRef.current);
-                    }
-                } catch (e) { console.error("API Link Failed"); }
-            };
-
-            const getGPS = () => {
-                navigator.geolocation.getCurrentPosition(p => syncData(null, p.coords.latitude, p.coords.longitude));
-            };
-
-            const handleSearch = async (val) => {
-                if (val.length < 3) { setSuggestions([]); return; }
-                const res = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${val}&limit=5&appid=63627b819695032bb8f19182b6f25bdf`);
-                const data = await res.json();
-                setSuggestions(data);
-            };
-
-            const i18n = {
-                en: { search: "Search city...", hum: "Humidity", wind: "Wind", ai: "AI Insight", tip: "Daily Advice", feels: "Feels like", dir: "ltr", unit: "km/h" },
-                ar: { search: "ابحث عن مدينة...", hum: "الرطوبة", wind: "الرياح", ai: "تحليل JYA الذكي", tip: "نصيحة اليوم", feels: "يشعر وكأنه", dir: "rtl", unit: "كم/س" }
-            }[lang];
-
-            const getAIAdvice = () => {
-                if (!weather) return "";
-                const t = Math.round(weather.main.temp);
-                const h = weather.main.humidity;
-                if (lang === 'ar') {
-                    if (t > 30) return `الطقس حار (${t}°م). الرطوبة ${h}% قد تزيد من الشعور بالحرارة. يُنصح بملابس خفيفة وشرب الماء بكثرة.`;
-                    return `الأجواء معتدلة ومناسبة للنشاطات الخارجية. استمتع بيومك!`;
-                }
-                return t > 30 ? `Hot weather (${t}°C). Humidity is ${h}%. Stay hydrated and avoid direct sun.` : `Conditions are optimal for outdoor tasks!`;
-            };
-
-            return (
-                <div className={`min-h-screen transition-all duration-500 ${isDark ? 'dark-mode' : 'light-mode'} ${i18n.dir}`}>
-                    
-                    {/* Navigation */}
-                    <nav className="sticky top-0 z-[100] h-20 px-6 glass flex items-center justify-between border-b border-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                                <Zap size={20} className="text-white fill-current" />
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- Main Card -->
+                <section class="glass p-10 rounded-[3rem] relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -z-10"></div>
+                    <div class="flex flex-col md:flex-row justify-between gap-10">
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-widest">
+                                <i data-lucide="map-pin" size="14"></i> <span id="cityName">INITIALIZING...</span>
                             </div>
-                            <span className="text-2xl font-black tracking-tighter hidden sm:block">JYA.io</span>
+                            <h2 class="text-8xl md:text-9xl font-black tracking-tighter" id="v-temp">--°</h2>
+                            <p class="text-xl font-bold opacity-60" id="v-desc">FETCHING DATA...</p>
+                            <div class="flex items-center gap-4 text-xs font-bold opacity-30 uppercase" id="v-time">--:-- | -- ---</div>
                         </div>
-
-                        <div className="flex-1 max-w-xl mx-6 relative group">
-                            <Search className={`absolute ${i18n.dir === 'rtl' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-500`} size={18} />
-                            <input 
-                                type="text" 
-                                placeholder={i18n.search}
-                                className={`w-full py-3 px-12 rounded-2xl outline-none text-sm border transition-all ${isDark ? 'bg-slate-900 border-white/10 focus:border-blue-500' : 'bg-slate-100 border-slate-200 focus:border-blue-500'}`}
-                                onChange={e => handleSearch(e.target.value)}
-                                onKeyPress={e => e.key === 'Enter' && syncData(e.target.value)}
-                            />
-                            {suggestions.length > 0 && (
-                                <div className="glass absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden shadow-2xl z-[200]">
-                                    {suggestions.map((s, i) => (
-                                        <div key={i} onClick={() => { setSuggestions([]); syncData(s.name, s.lat, s.lon); }} className="suggestion-item transition-all">
-                                            {s.name}, {s.state} {s.country}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                        <div class="flex flex-col items-center justify-center bg-blue-500/5 rounded-[3rem] p-10 border border-blue-500/10" id="w-icon">
+                            <i data-lucide="cloud" size="100" class="text-slate-500 animate-pulse"></i>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-3">
-                            <button onClick={getGPS} className="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500"><Navigation size={18}/></button>
-                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="p-2.5 rounded-xl border border-white/10 text-[10px] font-black uppercase">{lang === 'en' ? 'AR' : 'EN'}</button>
-                            <button onClick={() => setIsDark(!isDark)} className="p-2.5 rounded-xl transition-all">{isDark ? <Sun size={18} className="text-yellow-400"/> : <Moon size={18}/>}</button>
+                    <!-- AI ANALYSIS -->
+                    <div class="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-4">
+                        <div class="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/40">
+                            <i data-lucide="brain-circuit"></i>
                         </div>
-                    </nav>
-
-                    <main className="max-w-7xl mx-auto px-6 py-8">
-                        
-                        {/* 1. إعلان علوي (نحيف وصغير) */}
-                        <div className="mb-10 flex flex-col items-center">
-                            <span className="ad-tag">Sponsored Node</span>
-                            <div className="w-full max-w-[728px] h-[90px] bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
-                                <ins className="adsbygoogle" style={{display:'inline-block',width:'728px',height:'90px'}} data-ad-client="ca-pub-4916389984524641" data-ad-slot="1234567890"></ins>
-                            </div>
+                        <div>
+                            <h4 class="text-[10px] font-black uppercase text-blue-500 mb-1 tracking-widest" id="h-ai">AI ANALYSIS</h4>
+                            <p class="text-sm font-bold italic opacity-80 leading-relaxed" id="v-ai">"The system is processing environmental nodes..."</p>
                         </div>
+                    </div>
+                </section>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div className="lg:col-span-8 space-y-8">
-                                <section className={`p-10 rounded-[3.5rem] border relative overflow-hidden ${isDark ? 'glass border-white/5' : 'bg-white border-slate-200 shadow-xl'}`}>
-                                    <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-                                        <div>
-                                            <div className="flex items-center gap-2 text-blue-500 font-bold text-xs uppercase mb-2">
-                                                <MapPin size={14}/> {weather?.name || 'Syncing...'}, {weather?.sys.country}
-                                            </div>
-                                            <h2 className="text-8xl font-black tracking-tighter mb-4">{weather ? Math.round(weather.main.temp) : '--'}°</h2>
-                                            <p className="text-xl font-bold opacity-50 capitalize">{weather?.weather[0].description} • {i18n.feels} {weather ? Math.round(weather.main.feels_like) : '--'}°</p>
-                                        </div>
-                                        <div className="flex flex-col items-center justify-center bg-blue-500/5 rounded-[3rem] p-10 border border-blue-500/10">
-                                            {weather?.weather[0].main === 'Clear' ? <Sun size={100} className="text-yellow-400 drop-shadow-2xl" /> : <Cloud size={100} className="text-slate-400" />}
-                                        </div>
-                                    </div>
-
-                                    {/* AI Insight Analysis */}
-                                    <div className="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-4">
-                                        <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/30"><BrainCircuit size={24}/></div>
-                                        <div>
-                                            <h4 className="text-[10px] font-black uppercase text-blue-500 mb-1">{i18n.ai}</h4>
-                                            <p className="text-sm font-bold italic opacity-80 leading-relaxed">"{getAIAdvice()}"</p>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                                        <Droplets className="text-blue-500 mb-4" />
-                                        <div className="text-[10px] font-black opacity-30 uppercase mb-1">{i18n.hum}</div>
-                                        <div className="text-3xl font-black">{weather?.main.humidity}%</div>
-                                    </div>
-                                    <div className="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
-                                        <Wind className="text-emerald-500 mb-4" />
-                                        <div className="text-[10px] font-black opacity-30 uppercase mb-1">{i18n.wind}</div>
-                                        <div className="text-3xl font-black">{weather ? Math.round(weather.wind.speed * 3.6) : '--'} <span className="text-xs">{i18n.unit}</span></div>
-                                    </div>
-                                    <div className="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
-                                        <SunMedium className="text-orange-500 mb-4" />
-                                        <div className="text-[10px] font-black opacity-30 uppercase mb-1">UV Index</div>
-                                        <div className="text-3xl font-black">HIGH (8)</div>
-                                    </div>
-                                </div>
-
-                                <div id="map" class="shadow-2xl shadow-blue-900/10"></div>
-                            </div>
-
-                            <aside className="lg:col-span-4 space-y-8">
-                                <!-- 2. إعلان جانبي (مربع صغير) -->
-                                <div className="p-6 rounded-[3rem] bg-white/5 border border-white/5 flex flex-col items-center">
-                                    <span className="ad-tag">ADVERTISEMENT</span>
-                                    <div className="w-[250px] h-[250px] border border-dashed border-white/10 rounded-2xl flex items-center justify-center overflow-hidden">
-                                        <ins className="adsbygoogle" style={{display:'block',width:'250px',height:'250px'}} data-ad-client="ca-pub-4916389984524641" data-ad-slot="0987654321"></ins>
-                                    </div>
-                                </div>
-
-                                <div className="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-2xl">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <Sun className="text-yellow-300 fill-current" size={32}/>
-                                        <div className="text-right">
-                                            <div className="text-2xl font-black">{time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                                            <div className="text-[10px] font-bold opacity-30 uppercase">{time.toLocaleDateString(lang, {weekday:'short', day:'numeric'})}</div>
-                                        </div>
-                                    </div>
-                                    <h4 className="text-xl font-black mb-3 uppercase tracking-tighter">{i18n.tip}</h4>
-                                    <p className="text-sm font-medium opacity-90 leading-relaxed italic">{getAIAdvice()}</p>
-                                </div>
-                            </aside>
-                        </div>
-
-                        {/* 3. إعلان سفلي (كبير) */}
-                        <div className="mt-20 py-12 border-t border-white/5 flex flex-col items-center">
-                            <span className="ad-tag">Sponsored Content</span>
-                            <div className="w-full max-w-4xl h-24 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
-                                <ins className="adsbygoogle" style={{display:'block'}} data-ad-client="ca-pub-4916389984524641" data-ad-slot="1122334455" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                            </div>
-                        </div>
-                    </main>
-
-                    <footer className="py-12 border-t border-white/5 text-center opacity-40">
-                        <p class="text-[10px] font-black tracking-[1.5em] uppercase text-blue-600">JYA.io Global Network</p>
-                    </footer>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
+                        <i data-lucide="droplets" class="text-blue-400 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase" id="h-hum">HUMIDITY</div>
+                        <div class="text-3xl font-black" id="v-hum">--%</div>
+                    </div>
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
+                        <i data-lucide="wind" class="text-emerald-400 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase" id="h-wind">WIND SPEED</div>
+                        <div class="text-3xl font-black" id="v-wind">--</div>
+                    </div>
+                    <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
+                        <i data-lucide="sun-medium" class="text-orange-400 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase">UV INDEX</div>
+                        <div class="text-3xl font-black">HIGH (8)</div>
+                    </div>
                 </div>
-            );
+
+                <div id="map" class="shadow-2xl"></div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="lg:col-span-4 space-y-8">
+                
+                <!-- AD 2: SIDE -->
+                <div class="p-6 rounded-[3rem] bg-white/5 border border-white/5 flex flex-col items-center">
+                    <span class="ad-label" id="ad-text-2">SPONSORED</span>
+                    <div class="w-[250px] h-[250px] border border-dashed border-white/10 rounded-2xl flex items-center justify-center overflow-hidden">
+                        <ins class="adsbygoogle" style="display:block;width:250px;height:250px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="0987654321"></ins>
+                    </div>
+                </div>
+
+                <!-- Daily Tip -->
+                <div class="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-2xl">
+                    <i data-lucide="sun" class="mb-4 text-yellow-300 fill-current"></i>
+                    <h4 class="text-xl font-black mb-2 uppercase tracking-tighter" id="h-tip">DAILY TIP</h4>
+                    <p class="text-sm font-medium opacity-90 leading-relaxed italic" id="v-tip">
+                        Analyzing weather conditions for your health...
+                    </p>
+                </div>
+            </aside>
+        </div>
+
+        <!-- AD 3: BOTTOM -->
+        <div class="mt-20 py-12 border-t border-white/5 flex flex-col items-center">
+            <span class="ad-label" id="ad-text-3">SPONSORED CONTENT</span>
+            <div class="w-full max-w-4xl h-24 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1122334455" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-12 border-t border-white/5 text-center opacity-30 text-[10px] font-black tracking-[1em] uppercase">
+        JYA.io System
+    </footer>
+
+    <script>
+        // Initialization
+        lucide.createIcons();
+        const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        let marker;
+
+        const i18n = {
+            en: { search: "Search any city...", hum: "HUMIDITY", wind: "WIND SPEED", ai: "AI ANALYSIS", tip: "DAILY TIP", ad: "SPONSORED", unit: "km/h", dir: "ltr" },
+            ar: { search: "ابحث عن مدينة...", hum: "الرطوبة", wind: "سرعة الرياح", ai: "تحليل الذكاء الاصطناعي", tip: "نصيحة اليوم", ad: "إعلان مدعوم", unit: "كم/س", dir: "rtl" }
+        };
+
+        let currentLang = 'en';
+
+        function changeLang(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+            document.body.className = (document.body.classList.contains('dark-mode') ? 'dark-mode ' : 'light-mode ') + t.dir;
+            document.getElementById('citySearch').placeholder = t.search;
+            document.getElementById('h-ai').innerText = t.ai;
+            document.getElementById('h-hum').innerText = t.hum;
+            document.getElementById('h-wind').innerText = t.wind;
+            document.getElementById('h-tip').innerText = t.tip;
+            document.getElementById('ad-text-1').innerText = t.ad;
+            document.getElementById('ad-text-2').innerText = t.ad;
+            document.getElementById('ad-text-3').innerText = t.ad;
+            syncData();
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        async function syncData(city = null, lat = null, lon = null) {
+            try {
+                const target = city || document.getElementById('citySearch').value || 'Samawah';
+                let url = (lat && lon) 
+                    ? `/api/weather?lat=${lat}&lon=${lon}&lang=${currentLang}` 
+                    : `/api/weather?city=${encodeURIComponent(target)}&lang=${currentLang}`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.main) updateUI(data);
+            } catch (e) { console.error("API Link Error"); }
+        }
+
+        function updateUI(data) {
+            document.getElementById('cityName').innerText = `${data.name.toUpperCase()}, ${data.sys.country}`;
+            document.getElementById('v-temp').innerText = Math.round(data.main.temp) + "°";
+            document.getElementById('v-desc').innerText = data.weather[0].description.toUpperCase();
+            document.getElementById('v-hum').innerText = data.main.humidity + "%";
+            document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6) + " " + i18n[currentLang].unit;
+            document.getElementById('v-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + new Date().toLocaleDateString(currentLang, {day:'numeric', month:'short'});
+
+            // AI Logic
+            const temp = data.main.temp;
+            if (currentLang === 'en') {
+                document.getElementById('v-ai').innerText = temp > 30 ? `High heat detected (${Math.round(temp)}°C). Hydration is priority.` : `Conditions stable. Optimal for data harvesting.`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "Avoid direct sun and wear light fabrics." : "Great weather for outdoor activities!";
+            } else {
+                document.getElementById('v-ai').innerText = temp > 30 ? `حرارة مرتفعة (${Math.round(temp)}°م). شرب الماء ضروري جداً.` : `الأجواء مستقرة ومثالية للنشاط الخارجي.`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "تجنب الشمس المباشرة والبس ملابس خفيفة." : "يوم رائع للنشاطات الخارجية، استمتع بالجو!";
+            }
+
+            const { lat, lon } = data.coord;
+            map.flyTo([lat, lon], 10);
+            if(marker) map.removeLayer(marker);
+            marker = L.circleMarker([lat, lon], { color: '#3b82f6', radius: 10 }).addTo(map);
+        }
+
+        function getGPS() {
+            navigator.geolocation.getCurrentPosition(p => syncData(null, p.coords.latitude, p.coords.longitude));
+        }
+
+        function toggleTheme() {
+            const body = document.getElementById('app-body');
+            body.classList.toggle('dark-mode');
+            body.classList.toggle('light-mode');
+            const isDark = body.classList.contains('dark-mode');
+            document.getElementById('themeBtn').innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+            lucide.createIcons();
+        }
+
+        // Search Autocomplete
+        document.getElementById('citySearch').addEventListener('input', async (e) => {
+            const val = e.target.value;
+            const suggestions = document.getElementById('suggestions');
+            if(val.length < 3) { suggestions.style.display = 'none'; return; }
+            try {
+                const res = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${val}&limit=5&appid=63627b819695032bb8f19182b6f25bdf`);
+                const data = await res.json();
+                suggestions.innerHTML = '';
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerText = `${item.name}, ${item.country}`;
+                    div.onclick = () => {
+                        document.getElementById('citySearch').value = item.name;
+                        suggestions.style.display = 'none';
+                        syncData(item.name);
+                    };
+                    suggestions.appendChild(div);
+                });
+                suggestions.style.display = 'block';
+            } catch(e) {}
+        });
+
+        syncData();
+        document.getElementById('citySearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') syncData(); });
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
     </script>
 </body>
 </html>
+
+
