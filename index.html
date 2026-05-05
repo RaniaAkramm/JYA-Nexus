@@ -5,39 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JYA Nexus | Global Intelligence</title>
 
-    <!-- Google AdSense - Verified ID -->
+    <!-- AdSense Verification & Auto Ads -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4916389984524641" crossorigin="anonymous"></script>
 
-    <!-- Standard UI Libraries -->
+    <!-- Tailwind & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Leaflet Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        
-        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; transition: background 0.4s; overflow-x: hidden; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif; transition: background 0.5s; overflow-x: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         .dark-mode { background: #010409; color: white; }
         .light-mode { background: #f8fafc; color: #0f172a; }
-        #map { height: 350px; border-radius: 2rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); margin-top: 1rem; }
-        
-        #suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 200; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .suggestion-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        #map { height: 350px; border-radius: 2.5rem; z-index: 10; border: 1px solid rgba(59, 130, 246, 0.1); margin-top: 1rem; }
+        #suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 200; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .suggestion-item { padding: 14px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 600; }
         .suggestion-item:hover { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-        
-        .ad-label { font-size: 8px; font-weight: 900; opacity: 0.2; letter-spacing: 0.2em; text-align: center; display: block; margin-bottom: 4px; }
+        .ad-tag { font-size: 8px; font-weight: 900; opacity: 0.2; letter-spacing: 0.2em; text-align: center; display: block; margin-bottom: 4px; }
         .rtl { direction: rtl; }
         .ltr { direction: ltr; }
+        /* Prevent Black Screen with simple loader */
+        #loader { position: fixed; inset: 0; background: #010409; z-index: 1000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="dark-mode ltr" id="app-body">
 
-    <!-- Header -->
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Navigation -->
     <nav class="sticky top-0 z-[100] h-20 px-6 glass flex items-center justify-between border-b border-white/5">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                 <i data-lucide="zap" class="text-white fill-current"></i>
             </div>
             <span class="text-2xl font-black tracking-tighter hidden sm:block uppercase">JYA<span class="text-blue-500">.io</span></span>
@@ -51,16 +57,12 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <button onclick="getGPS()" class="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500" title="GPS">
-                <i data-lucide="navigation"></i>
-            </button>
+            <button onclick="getGPS()" class="p-2.5 rounded-xl hover:bg-blue-500/10 transition-all text-blue-500"><i data-lucide="navigation"></i></button>
             <select id="langSelect" onchange="changeLang(this.value)" class="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer border border-white/10 rounded-lg px-2 py-1">
                 <option value="en">English</option>
                 <option value="ar">العربية</option>
             </select>
-            <button onclick="toggleTheme()" class="p-2.5 rounded-xl transition-all text-yellow-400" id="themeBtn">
-                <i data-lucide="sun"></i>
-            </button>
+            <button onclick="toggleTheme()" class="p-2.5 rounded-xl transition-all text-yellow-400" id="themeBtn"><i data-lucide="sun"></i></button>
         </div>
     </nav>
 
@@ -68,7 +70,7 @@
         
         <!-- AD 1: TOP -->
         <div class="mb-10 flex flex-col items-center">
-            <span class="ad-label" id="ad-text-1">SPONSORED AD</span>
+            <span class="ad-tag" id="ad-t-1">SPONSORED AD</span>
             <div class="w-full max-w-[728px] h-20 sm:h-[90px] bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
                 <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1234567890"></ins>
             </div>
@@ -77,31 +79,29 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-8 space-y-8">
                 
-                <!-- Main Card -->
-                <section class="glass p-10 rounded-[3rem] relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -z-10"></div>
+                <!-- Main Intelligence Card -->
+                <section class="glass p-8 sm:p-12 rounded-[3.5rem] relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 blur-[120px] -z-10"></div>
                     <div class="flex flex-col md:flex-row justify-between gap-10">
                         <div class="space-y-6">
                             <div class="flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-widest">
-                                <i data-lucide="map-pin" size="14"></i> <span id="cityName">INITIALIZING...</span>
+                                <i data-lucide="map-pin" size="14"></i> <span id="cityName">SYNCING NODE...</span>
                             </div>
                             <h2 class="text-8xl md:text-9xl font-black tracking-tighter" id="v-temp">--°</h2>
-                            <p class="text-xl font-bold opacity-60" id="v-desc">FETCHING DATA...</p>
+                            <p class="text-xl font-bold opacity-60" id="v-desc">INITIALIZING...</p>
                             <div class="flex items-center gap-4 text-xs font-bold opacity-30 uppercase" id="v-time">--:-- | -- ---</div>
                         </div>
-                        <div class="flex flex-col items-center justify-center bg-blue-500/5 rounded-[3rem] p-10 border border-blue-500/10" id="w-icon">
+                        <div class="flex flex-col items-center justify-center bg-blue-500/5 rounded-[3.5rem] p-10 border border-blue-500/10" id="w-icon">
                             <i data-lucide="cloud" size="100" class="text-slate-500 animate-pulse"></i>
                         </div>
                     </div>
 
                     <!-- AI ANALYSIS -->
-                    <div class="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-4">
-                        <div class="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/40">
-                            <i data-lucide="brain-circuit"></i>
-                        </div>
+                    <div class="mt-12 p-6 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 flex gap-5">
+                        <div class="p-3.5 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/40"><i data-lucide="brain-circuit"></i></div>
                         <div>
-                            <h4 class="text-[10px] font-black uppercase text-blue-500 mb-1 tracking-widest" id="h-ai">AI ANALYSIS</h4>
-                            <p class="text-sm font-bold italic opacity-80 leading-relaxed" id="v-ai">"The system is processing environmental nodes..."</p>
+                            <h4 class="text-[10px] font-black uppercase text-blue-500 mb-1 tracking-widest" id="h-ai">AI INSIGHT</h4>
+                            <p class="text-sm font-bold italic opacity-80 leading-relaxed" id="v-ai">"System is analyzing environmental nodes..."</p>
                         </div>
                     </div>
                 </section>
@@ -109,18 +109,18 @@
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                        <i data-lucide="droplets" class="text-blue-400 mb-4"></i>
-                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase" id="h-hum">HUMIDITY</div>
+                        <i data-lucide="droplets" class="text-blue-500 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 uppercase mb-1" id="h-hum">HUMIDITY</div>
                         <div class="text-3xl font-black" id="v-hum">--%</div>
                     </div>
                     <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
-                        <i data-lucide="wind" class="text-emerald-400 mb-4"></i>
-                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase" id="h-wind">WIND SPEED</div>
+                        <i data-lucide="wind" class="text-emerald-500 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 uppercase mb-1" id="h-wind">WIND</div>
                         <div class="text-3xl font-black" id="v-wind">--</div>
                     </div>
                     <div class="glass p-8 rounded-[2.5rem] border-l-4 border-orange-500">
-                        <i data-lucide="sun-medium" class="text-orange-400 mb-4"></i>
-                        <div class="text-[10px] font-black opacity-30 mb-1 uppercase">UV INDEX</div>
+                        <i data-lucide="sun-medium" class="text-orange-500 mb-4"></i>
+                        <div class="text-[10px] font-black opacity-30 uppercase mb-1">UV INDEX</div>
                         <div class="text-3xl font-black">HIGH (8)</div>
                     </div>
                 </div>
@@ -133,18 +133,18 @@
                 
                 <!-- AD 2: SIDE -->
                 <div class="p-6 rounded-[3rem] bg-white/5 border border-white/5 flex flex-col items-center">
-                    <span class="ad-label" id="ad-text-2">SPONSORED</span>
-                    <div class="w-[250px] h-[250px] border border-dashed border-white/10 rounded-2xl flex items-center justify-center overflow-hidden">
+                    <span class="ad-tag" id="ad-t-2">SPONSORED</span>
+                    <div class="w-[250px] h-[250px] border border-dashed border-white/10 rounded-2xl flex items-center justify-center overflow-hidden bg-slate-900/50">
                         <ins class="adsbygoogle" style="display:block;width:250px;height:250px" data-ad-client="ca-pub-4916389984524641" data-ad-slot="0987654321"></ins>
                     </div>
                 </div>
 
                 <!-- Daily Tip -->
-                <div class="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-2xl">
-                    <i data-lucide="sun" class="mb-4 text-yellow-300 fill-current"></i>
-                    <h4 class="text-xl font-black mb-2 uppercase tracking-tighter" id="h-tip">DAILY TIP</h4>
+                <div class="p-8 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-900 text-white shadow-2xl">
+                    <i data-lucide="sun" class="mb-4 text-yellow-300 fill-current" size="32"></i>
+                    <h4 class="text-xl font-black mb-3 uppercase tracking-tighter" id="h-tip">DAILY TIP</h4>
                     <p class="text-sm font-medium opacity-90 leading-relaxed italic" id="v-tip">
-                        Analyzing weather conditions for your health...
+                        Analyzing climate nodes for advice...
                     </p>
                 </div>
             </aside>
@@ -152,26 +152,30 @@
 
         <!-- AD 3: BOTTOM -->
         <div class="mt-20 py-12 border-t border-white/5 flex flex-col items-center">
-            <span class="ad-label" id="ad-text-3">SPONSORED CONTENT</span>
+            <span class="ad-tag" id="ad-t-3">SPONSORED CONTENT</span>
             <div class="w-full max-w-4xl h-24 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden">
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4916389984524641" data-ad-slot="1122334455" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
         </div>
     </main>
 
-    <footer class="py-12 border-t border-white/5 text-center opacity-30 text-[10px] font-black tracking-[1em] uppercase">
-        JYA.io System
+    <footer class="py-12 border-t border-white/5 text-center opacity-40 text-[10px] font-black tracking-[1.5em] uppercase">
+        JYA.io Global Network
     </footer>
 
     <script>
         // Initialization
-        lucide.createIcons();
+        window.onload = () => {
+            lucide.createIcons();
+            document.getElementById('loader').style.display = 'none';
+        };
+
         const map = L.map('map', { zoomControl: false }).setView([31.33, 45.27], 6);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         let marker;
 
         const i18n = {
-            en: { search: "Search any city...", hum: "HUMIDITY", wind: "WIND SPEED", ai: "AI ANALYSIS", tip: "DAILY TIP", ad: "SPONSORED", unit: "km/h", dir: "ltr" },
+            en: { search: "Search any city...", hum: "HUMIDITY", wind: "WIND SPEED", ai: "AI INSIGHT", tip: "DAILY TIP", ad: "SPONSORED", unit: "km/h", dir: "ltr" },
             ar: { search: "ابحث عن مدينة...", hum: "الرطوبة", wind: "سرعة الرياح", ai: "تحليل الذكاء الاصطناعي", tip: "نصيحة اليوم", ad: "إعلان مدعوم", unit: "كم/س", dir: "rtl" }
         };
 
@@ -180,21 +184,22 @@
         function changeLang(lang) {
             currentLang = lang;
             const t = i18n[lang];
-            document.body.className = (document.body.classList.contains('dark-mode') ? 'dark-mode ' : 'light-mode ') + t.dir;
+            document.body.className = (document.getElementById('app-body').classList.contains('dark-mode') ? 'dark-mode ' : 'light-mode ') + t.dir;
             document.getElementById('citySearch').placeholder = t.search;
             document.getElementById('h-ai').innerText = t.ai;
             document.getElementById('h-hum').innerText = t.hum;
             document.getElementById('h-wind').innerText = t.wind;
             document.getElementById('h-tip').innerText = t.tip;
-            document.getElementById('ad-text-1').innerText = t.ad;
-            document.getElementById('ad-text-2').innerText = t.ad;
-            document.getElementById('ad-text-3').innerText = t.ad;
+            document.getElementById('ad-t-1').innerText = t.ad;
+            document.getElementById('ad-t-2').innerText = t.ad;
+            document.getElementById('ad-t-3').innerText = t.ad;
             syncData();
         }
 
         async function syncData(city = null, lat = null, lon = null) {
             try {
                 const target = city || document.getElementById('citySearch').value || 'Samawah';
+                // نستخدم مسار الـ API الحقيقي الخاص بك بدون تسريب مفاتيح
                 let url = (lat && lon) 
                     ? `/api/weather?lat=${lat}&lon=${lon}&lang=${currentLang}` 
                     : `/api/weather?city=${encodeURIComponent(target)}&lang=${currentLang}`;
@@ -213,20 +218,19 @@
             document.getElementById('v-wind').innerText = Math.round(data.wind.speed * 3.6) + " " + i18n[currentLang].unit;
             document.getElementById('v-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + new Date().toLocaleDateString(currentLang, {day:'numeric', month:'short'});
 
-            // AI Logic
             const temp = data.main.temp;
             if (currentLang === 'en') {
-                document.getElementById('v-ai').innerText = temp > 30 ? `High heat detected (${Math.round(temp)}°C). Hydration is priority.` : `Conditions stable. Optimal for data harvesting.`;
-                document.getElementById('v-tip').innerText = temp > 30 ? "Avoid direct sun and wear light fabrics." : "Great weather for outdoor activities!";
+                document.getElementById('v-ai').innerText = temp > 30 ? `Heat index is high (${Math.round(temp)}°C). Hydration is critical.` : `Environmental conditions are optimal for outdoor nodes.`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "Avoid direct sun and drink water every hour." : "Perfect day for data harvesting and outdoor tasks!";
             } else {
-                document.getElementById('v-ai').innerText = temp > 30 ? `حرارة مرتفعة (${Math.round(temp)}°م). شرب الماء ضروري جداً.` : `الأجواء مستقرة ومثالية للنشاط الخارجي.`;
-                document.getElementById('v-tip').innerText = temp > 30 ? "تجنب الشمس المباشرة والبس ملابس خفيفة." : "يوم رائع للنشاطات الخارجية، استمتع بالجو!";
+                document.getElementById('v-ai').innerText = temp > 30 ? `الحرارة مرتفعة (${Math.round(temp)}°م). الرطوبة تزيد الشعور بالضيق.` : `الأجواء مثالية للنشاط الخارجي والمزامنة.`;
+                document.getElementById('v-tip').innerText = temp > 30 ? "تجنب الشمس المباشرة واشرب الماء بانتظام." : "يوم رائع للنشاطات الخارجية، استمتع بالجو!";
             }
 
             const { lat, lon } = data.coord;
             map.flyTo([lat, lon], 10);
             if(marker) map.removeLayer(marker);
-            marker = L.circleMarker([lat, lon], { color: '#3b82f6', radius: 10 }).addTo(map);
+            marker = L.circleMarker([lat, lon], { color: '#3b82f6', radius: 12, fillOpacity: 0.3 }).addTo(map);
         }
 
         function getGPS() {
@@ -242,13 +246,14 @@
             lucide.createIcons();
         }
 
-        // Search Autocomplete
+        // Autocomplete
         document.getElementById('citySearch').addEventListener('input', async (e) => {
             const val = e.target.value;
             const suggestions = document.getElementById('suggestions');
             if(val.length < 3) { suggestions.style.display = 'none'; return; }
             try {
-                const res = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${val}&limit=5&appid=63627b819695032bb8f19182b6f25bdf`);
+                // نطلب الاقتراحات من خلال الـ API الخاص بك أيضاً لمنع تسريب المفاتيح
+                const res = await fetch(`/api/weather?search=${val}`);
                 const data = await res.json();
                 suggestions.innerHTML = '';
                 data.forEach(item => {
@@ -272,5 +277,3 @@
     </script>
 </body>
 </html>
-
-
